@@ -3,9 +3,9 @@
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 //Import the checkout form written in components/CheckoutForm.tsx
-import CheckoutForm from '../../components/CheckoutForm';
+import CheckoutForm from '../../components/CheckoutFormStripe';
 
-// Initialize stripw with the PUBLIC key in the end file
+// Initialize stripe with the PUBLIC key in the end file
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 //a function to render a checkout page in which to submit a payment

@@ -16,6 +16,9 @@ import { useState } from 'react';
 //default keyword makes this the primary functionality of this file; when importing 
 // this file, this entity will automatically be provided and can be renamed at import.
 export default function CheckoutForm() {
+  //get backend URL from the env file
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL!;
+
     const stripe = useStripe(); //has an interface to access stripe methods
     const elements = useElements(); //can be used to reference stripe elements in UI
     
@@ -34,7 +37,7 @@ export default function CheckoutForm() {
 
       //Call the backend to initiate creating a payment intent for this payment.
       //Reference the base URL in the env file.
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/stripe/create-payment-intent`, {
+      const res = await fetch(`${backendUrl}/api/stripe/create-payment-intent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         //populate the JSON with lines to match the expected input format for the
