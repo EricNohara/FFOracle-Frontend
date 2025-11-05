@@ -2,7 +2,7 @@
 
 import styled from "styled-components"
 import Image from "next/image"
-import { PrimaryColorButton } from "../Buttons"
+import { PrimaryColorButton, PrimaryColorOutlinedButton } from "../Buttons"
 import { useRouter } from "next/navigation"
 
 const NavBar = styled.nav`
@@ -41,7 +41,7 @@ export default function LandingNav() {
                 />
             </LogoContainer>
             <ButtonContainer>
-                <PrimaryColorButton onClick={() => router.push("/signin")}>Sign In</PrimaryColorButton>
+                <PrimaryColorOutlinedButton onClick={() => router.push("/signin")}>Sign In</PrimaryColorOutlinedButton>
                 <PrimaryColorButton onClick={() => router.push("/signup")}>Sign Up</PrimaryColorButton>
             </ButtonContainer>
         </NavBar>

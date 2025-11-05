@@ -2,14 +2,15 @@ import { ReactNode, ButtonHTMLAttributes } from "react"
 import { headerFont } from "../localFont"
 import styled from "styled-components"
 
-const ButtonBase = styled.button`
-    padding: 0.5rem 1.5rem;
-    font-size: 0.9rem;
-    font-weight: bold;
-    border: none;
-    border-radius: var(--global-border-radius);
-    color: white;
-    transition: 0.2s ease;
+const ButtonBase = styled.button<{ isFullWidth?: boolean }>`
+  padding: 0.5rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border: none;
+  border-radius: var(--global-border-radius);
+  color: white;
+  transition: 0.2s ease;
+  width: ${({ isFullWidth }) => (isFullWidth ? "100%" : "auto")};
 `;
 
 const PrimaryButton = styled(ButtonBase)`
@@ -21,24 +22,52 @@ const PrimaryButton = styled(ButtonBase)`
   }
 `;
 
+const PrimaryOutlinedButton = styled(ButtonBase)`
+  background-color: transparent;
+  border: 2px solid var(--color-primary);
+
+  &:hover {
+    background-color: var(--color-primary);
+    cursor: pointer;
+  }
+`;
+
 const SecondaryButton = styled(ButtonBase)`
     background-color: var(--color-secondary);
 
     &:hover {
         background-color: var(--color-secondary-hover);
+        border: none;
         cursor: pointer;
     }
 `;
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-    children: ReactNode;
-    href?: string;
+  children: ReactNode;
+  href?: string;
+  isFullWidth?: boolean;
 }
 
 export function PrimaryColorButton({ children, ...props }: ButtonProps) {
-    return <PrimaryButton className={headerFont.className} {...props}>{children}</PrimaryButton>
+  return (
+    <PrimaryButton className={headerFont.className} {...props}>
+      {children}
+    </PrimaryButton>
+  );
+}
+
+export function PrimaryColorOutlinedButton({ children, ...props }: ButtonProps) {
+  return (
+    <PrimaryOutlinedButton className={headerFont.className} {...props}>
+      {children}
+    </PrimaryOutlinedButton>
+  );
 }
 
 export function SecondaryColorButton({ children, ...props }: ButtonProps) {
-    return <SecondaryButton className={headerFont.className} {...props}>{children}</SecondaryButton>
+  return (
+    <SecondaryButton className={headerFont.className} {...props}>
+      {children}
+    </SecondaryButton>
+  );
 }
