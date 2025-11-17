@@ -1,12 +1,13 @@
 "use client";
 
 import styled from "styled-components";
-import { IPlayerData } from "../interfaces/IUserData";
-import { formatGameInfo } from "@/lib/utils/formatGameInfo";
+import { ILeagueDefense, IPlayerData } from "../interfaces/IUserData";
+import { formatGameInfo, formatTeamGameInfo } from "@/lib/utils/formatGameInfo";
 import { headerFont } from "../localFont";
 
 interface IPlayerListProps {
     players: IPlayerData[];
+    defenses?: ILeagueDefense[];
 }
 
 const ListWrapper = styled.div`
@@ -74,7 +75,7 @@ const PlayerStartSitTag = styled.div<{ $picked?: boolean }>`
   justify-content: center;
   padding: 0.5rem;
   border-radius: var(--global-border-radius);
-  background-color: ${({ $picked }) => $picked ? "var(--color-green)" : "#cf5353"};
+  background-color: ${({ $picked }) => $picked ? "var(--color-green)" : "var(--color-red)"};
   font-weight: bold;
   color: white;
 `;
@@ -89,8 +90,7 @@ const positionColors: Record<string, string> = {
     WR: "#C75000",
     TE: "#9E3F00",
     K: "#744C32",
-    DEF: "#8A2BE2",
-    FLEX: "#593B26",
+    DEF: "#593B26",
 };
 
 const PlayerPositionTag = styled.div<IPlayerPositionTagProps>`
@@ -105,10 +105,23 @@ const PlayerPositionTag = styled.div<IPlayerPositionTagProps>`
   color: white;
 `;
 
-export default function PlayerList({ players }: IPlayerListProps) {
+const POSITION_ORDER = ["QB", "RB", "WR", "TE", "K", "DEF"];
+
+export default function PlayerList({ players, defenses = [] }: IPlayerListProps) {
+    const sortedPlayers = [...players].sort((a, b) => {
+        // Compare positions
+        const posDiff =
+            POSITION_ORDER.indexOf(a.player.position) - POSITION_ORDER.indexOf(b.player.position);
+
+        if (posDiff !== 0) return posDiff;
+
+        // If positions are equal, sort by picked status (true first)
+        return Number(b.picked) - Number(a.picked);
+    });
+
     return (
         <ListWrapper>
-            {players.map((playerData) => (
+            {sortedPlayers.map((playerData) => (
                 <PlayerCard key={playerData.player.id}>
                     <PlayerSimpleData>
                         <PlayerPositionTag position={playerData.player.position}>{playerData.player.position}</PlayerPositionTag>
@@ -125,6 +138,25 @@ export default function PlayerList({ players }: IPlayerListProps) {
                     </PlayerSimpleData>
                     <PlayerStartInfo>
                         {<PlayerStartSitTag $picked={playerData.picked}>{playerData.picked ? "Start" : "Sit"}</PlayerStartSitTag>}
+                    </PlayerStartInfo>
+                </PlayerCard>
+            ))}
+            {defenses.map((def) => (
+                <PlayerCard key={def.team.id}>
+                    <PlayerSimpleData>
+                        <PlayerPositionTag position="DEF">DEF</PlayerPositionTag>
+                        <PlayerImage
+                            src={def.team.logo_url ?? "/default_player.png"}
+                            alt={def.team.name}
+                        />
+                        <PlayerInfo>
+                            <PlayerName className={headerFont.className}>{def.team.name}</PlayerName>
+                            <PlayerData>{def.team.id}</PlayerData>
+                            <PlayerData>{formatTeamGameInfo(def.game, def)}</PlayerData>
+                        </PlayerInfo>
+                    </PlayerSimpleData>
+                    <PlayerStartInfo>
+                        {<PlayerStartSitTag $picked={def.picked}>{def.picked ? "Start" : "Sit"}</PlayerStartSitTag>}
                     </PlayerStartInfo>
                 </PlayerCard>
             ))}

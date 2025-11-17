@@ -61,7 +61,7 @@ export default function DashboardPage() {
     return (
         <AppNavWrapper title="ROSTER DASHBOARD" button1={button} button2={leagueDropdown}>
             {selectedLeagueData ? (
-                <PlayerList players={selectedLeagueData.players ?? []} />
+                <PlayerList players={selectedLeagueData.players ?? []} defenses={selectedLeagueData.defenses ?? []} />
             ) : (
                 <p>No league selected</p>
             )}
