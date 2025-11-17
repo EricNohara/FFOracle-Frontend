@@ -4,6 +4,8 @@ import { ReactNode } from "react";
 import Navigation from "./Navigation/Navigation";
 import styled from "styled-components";
 import { titleFont } from "../localFont";
+import { useUserData } from "../context/UserDataProvider";
+import LoadingSpinner from "./LoadingSpinner";
 
 interface IAppNavWrapperProps {
   title: string;
@@ -47,6 +49,22 @@ const ButtonsWrapper = styled.div`
 
 
 export default function AppNavWrapper({ title, button1, button2, children }: IAppNavWrapperProps) {
+  const { isLoading } = useUserData();
+
+  if (isLoading) return <div style={{
+    width: "100vw",
+    height: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    gap: "1rem",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "var(--color-base-dark)"
+  }}>
+    <LoadingSpinner size={60} />
+    <p style={{ color: "white" }}>Loading...</p>
+  </div>;
+
   return (
     <Wrapper>
       <Navigation />
