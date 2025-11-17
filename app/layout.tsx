@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { baseFont } from "./localFont";
 import { AuthProvider } from "./context/AuthProvider";
+import { UserDataProvider } from "./context/UserDataProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +18,9 @@ export default function RootLayout({
     <html lang="en" className={baseFont.className}>
       <body>
         <AuthProvider>
-          {children}
+          <UserDataProvider>
+            {children}
+          </UserDataProvider>
         </AuthProvider>
       </body>
     </html >

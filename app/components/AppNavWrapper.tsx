@@ -4,6 +4,8 @@ import { ReactNode } from "react";
 import Navigation from "./Navigation/Navigation";
 import styled from "styled-components";
 import { titleFont } from "../localFont";
+import { useUserData } from "../context/UserDataProvider";
+import LoadingSpinner from "./LoadingSpinner";
 
 interface IAppNavWrapperProps {
   title: string;
@@ -23,6 +25,7 @@ const RightPanel = styled.div`
   display: flex;
   flex-direction: column;
   padding: 4rem;
+  padding-bottom: 2rem;
   background-color: var(--color-base-dark-5);
   color: white;
 `;
@@ -45,8 +48,51 @@ const ButtonsWrapper = styled.div`
   gap: 2rem;
 `;
 
+const ContentWrapper = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  border-radius: var(--global-border-radius);
+  background-color: var(--color-base-dark);
+
+  /* Scrollbar styling for Webkit browsers (Chrome, Edge, Safari) */
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--color-base-dark-3);
+    border-radius: var(--global-border-radius);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--color-primary);
+    border-radius: var(--global-border-radius);
+    border: 2px solid var(--color-base-dark-3);
+  }
+    
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary) var(--color-base-dark-3);
+`;
 
 export default function AppNavWrapper({ title, button1, button2, children }: IAppNavWrapperProps) {
+  const { isLoading } = useUserData();
+
+  if (isLoading) return <div style={{
+    width: "100vw",
+    height: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    gap: "1rem",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "var(--color-base-dark)"
+  }}>
+    <LoadingSpinner size={60} />
+    <p style={{ color: "white" }}>Loading...</p>
+  </div>;
+
   return (
     <Wrapper>
       <Navigation />
@@ -56,13 +102,13 @@ export default function AppNavWrapper({ title, button1, button2, children }: IAp
           <Title className={titleFont.className}>{title}</Title>
           {(button1 || button2) && (
             <ButtonsWrapper>
-              {button1}
               {button2}
+              {button1}
             </ButtonsWrapper>
           )}
         </PageHeader>
 
-        <div>{children}</div>
+        <ContentWrapper>{children}</ContentWrapper>
       </RightPanel>
     </Wrapper>
   );

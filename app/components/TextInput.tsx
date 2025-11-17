@@ -2,22 +2,13 @@ import styled from "styled-components";
 import { ChangeEvent } from "react";
 import { headerFont } from "../localFont";
 
-interface ITextInputProps {
-  label: string;
-  name: string;
-  value: string;
-  placeholder?: string;
-  type?: string;
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  required?: boolean;
-}
-
-const InputWrapper = styled.div`
+const InputWrapper = styled.div<{ $compact?: boolean }>`
   display: flex;
   flex-direction: column;
-  margin-bottom: 1rem;
-    width: 100%;
-    &:focus-within label {
+  margin-bottom: ${(props) => (props.$compact ? "0.5rem" : "1rem")};
+  width: 100%;
+
+  &:focus-within label {
     color: var(--color-primary);
   }
 `;
@@ -30,9 +21,9 @@ const Label = styled.label`
   transition: 0.2s ease;
 `;
 
-const Input = styled.input`
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
+const Input = styled.input<{ $compact?: boolean }>`
+  padding: ${(props) => (props.$compact ? "0.4rem 0.8rem" : "0.75rem 1rem")};
+  font-size: ${(props) => (props.$compact ? "0.85rem" : "1rem")};
   border-radius: var(--global-border-radius);
   border: 2px solid var(--color-txt-3);
   color: white;
@@ -48,7 +39,6 @@ const Input = styled.input`
     border-color: var(--color-primary);
   }
 
-  /* fix autofill background in Chrome / Edge / Safari */
   &:-webkit-autofill,
   &:-webkit-autofill:hover,
   &:-webkit-autofill:focus {
@@ -57,12 +47,22 @@ const Input = styled.input`
     transition: background-color 9999s ease-out 0s;
   }
 
-  /* optional for Firefox */
   &:-moz-autofill {
     box-shadow: 0 0 0 1000px var(--color-base-dark-3) inset !important;
     -moz-text-fill-color: white !important;
   }
 `;
+
+interface ITextInputProps {
+  label: string;
+  name: string;
+  value: string;
+  placeholder?: string;
+  type?: string;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  required?: boolean;
+  compact?: boolean;
+}
 
 export default function TextInput({
   label,
@@ -71,7 +71,8 @@ export default function TextInput({
   placeholder,
   type = "text",
   onChange,
-  required = false
+  required = false,
+  compact = false
 }: ITextInputProps) {
   return (
     <InputWrapper>
@@ -84,6 +85,7 @@ export default function TextInput({
         placeholder={placeholder}
         onChange={onChange}
         required={required}
+        $compact={compact}
       />
     </InputWrapper>
   );

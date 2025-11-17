@@ -161,6 +161,7 @@ export default function SignInPage() {
 
       if (data.session) {
         //  redirect user to dashboard page
+        console.log(data.session);
         setIsLoggedIn(true);
         router.push("/dashboard");
       }

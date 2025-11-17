@@ -10,6 +10,7 @@ import TextInput from "../components/TextInput";
 import Image from "next/image";
 import TitleLogo from "../components/TitleLogo";
 import { useRedirectIfLoggedIn } from "../hooks/useRedirectIfLoggedIn";
+import CheckboxInput from "../components/CheckboxInput";
 
 const Container = styled.div`
   display: grid;
@@ -141,7 +142,9 @@ export default function SignUpPage() {
   const router = useRouter();
   const { setIsLoggedIn } = useAuth();
 
-  const [teamName, setTeamName] = useState("");
+  const [fullname, setFullname] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [allowEmails, setAllowEmails] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -160,7 +163,9 @@ export default function SignUpPage() {
         body: JSON.stringify({
           email,
           password,
-          teamName: teamName || null
+          fullname: fullname || null,
+          phone_number: phoneNumber || null,
+          allow_emails: allowEmails
         })
       });
 
@@ -176,7 +181,9 @@ export default function SignUpPage() {
       router.push("/signin");
     } catch (err) {
       alert(err);
-      setTeamName("");
+      setFullname("");
+      setPhoneNumber("");
+      setAllowEmails(true);
       setEmail("");
       setPassword("");
       setIsLoading(false);
@@ -194,19 +201,13 @@ export default function SignUpPage() {
 
           <LoginForm onSubmit={handleSignUp}>
             <TextInput
-              label="Team Name"
-              name="teamName"
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-              placeholder="Enter your team name"
-            />
-            <TextInput
               label="Email"
               name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               required
+              compact
             />
             <TextInput
               label="Password"
@@ -216,6 +217,28 @@ export default function SignUpPage() {
               placeholder="Enter your password"
               type="password"
               required
+              compact
+            />
+            <TextInput
+              label="Full Name"
+              name="fullname"
+              value={fullname}
+              onChange={(e) => setFullname(e.target.value)}
+              placeholder="Enter your full name"
+              compact
+            />
+            <TextInput
+              label="Phone Number"
+              name="phoneNumber"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="Enter your phone number"
+              compact
+            />
+            <CheckboxInput
+              checked={allowEmails}
+              onChange={setAllowEmails}
+              label="Allow FFOracle to send article emails about your players"
             />
             <PrimaryColorButton
               type="submit"
