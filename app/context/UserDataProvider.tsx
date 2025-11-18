@@ -33,7 +33,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
 
         try {
             const res = await fetch(
-                "https://fforacle-gegydpfvezf5axc5.centralus-01.azurewebsites.net/api/GetUserData",
+                `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/GetUserData`,
                 {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
