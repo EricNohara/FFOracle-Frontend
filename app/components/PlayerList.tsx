@@ -9,6 +9,8 @@ interface IPlayerListProps {
   players: IPlayerData[];
   defenses?: ILeagueDefense[];
   displayStartSit?: boolean;
+  onPlayerClick?: (player: IPlayerData) => void; // callback when a player card is clicked
+  onDefenseClick?: (player: ILeagueDefense) => void; // callback when a defense card is clicked
 }
 
 const ListWrapper = styled.div`
@@ -94,7 +96,7 @@ const positionColors: Record<string, string> = {
   DEF: "#593B26",
 };
 
-const PlayerPositionTag = styled.div<IPlayerPositionTagProps>`
+export const PlayerPositionTag = styled.div<IPlayerPositionTagProps>`
   width: 60px;
   display: flex;
   align-items: center;
@@ -108,7 +110,7 @@ const PlayerPositionTag = styled.div<IPlayerPositionTagProps>`
 
 const POSITION_ORDER = ["QB", "RB", "WR", "TE", "K", "DEF"];
 
-export default function PlayerList({ players, defenses = [], displayStartSit = true }: IPlayerListProps) {
+export default function PlayerList({ players, defenses = [], displayStartSit = true, onPlayerClick, onDefenseClick }: IPlayerListProps) {
   const sortedPlayers = [...players]
     .filter((p): p is IPlayerData & { player: NonNullable<IPlayerData['player']> } =>
       p != null && p.player != null && p.player.position != null
@@ -128,7 +130,7 @@ export default function PlayerList({ players, defenses = [], displayStartSit = t
     <ListWrapper>
       {sortedPlayers.map((playerData) => (
         playerData && playerData.player && playerData.player.name && playerData.player.headshot_url && playerData.player.position &&
-        < PlayerCard key={playerData.player.id} >
+        < PlayerCard key={playerData.player.id} onClick={() => onPlayerClick && onPlayerClick(playerData)}>
           <PlayerSimpleData>
             <PlayerPositionTag position={playerData.player.position}>{playerData.player.position}</PlayerPositionTag>
 
@@ -154,7 +156,7 @@ export default function PlayerList({ players, defenses = [], displayStartSit = t
       {
         defenses.map((def) => (
           def && def.team &&
-          <PlayerCard key={def.team.id}>
+          <PlayerCard key={def.team.id} onClick={() => onDefenseClick && onDefenseClick(def)}>
             <PlayerSimpleData>
               <PlayerPositionTag position="DEF">DEF</PlayerPositionTag>
               <PlayerImage

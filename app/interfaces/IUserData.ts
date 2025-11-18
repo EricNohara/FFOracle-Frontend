@@ -9,7 +9,7 @@ export interface ILeagueData {
   leagueName: string;
   rosterSettings: IRosterSettings;
   scoringSettings: IScoringSettings;
-  defenses: [];
+  defenses: ILeagueDefense[];
 }
 
 export interface IUserInfo {

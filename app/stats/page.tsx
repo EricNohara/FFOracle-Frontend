@@ -8,6 +8,7 @@ import styled from "styled-components";
 import { usePlayersByPosition } from "../hooks/usePlayersByPosition";
 import PlayerList from "../components/PlayerList";
 import LoadingSpinner from "../components/LoadingSpinner";
+import LoadingMessage from "../components/LoadingMessage";
 
 const LeagueDropdown = styled.select`
   padding: 0.5rem 1rem;
@@ -99,23 +100,13 @@ export default function StatsPage() {
 
   return (
     <AppNavWrapper title="LEAGUE STATS" button1={positionDropdown} button2={leagueDropdown}>
-      {isLoading ? (
-        <div style={{
-          height: "100%",
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem",
-          alignItems: "center",
-          justifyContent: "center"
-        }}>
-          <LoadingSpinner size={50} />Loading players...
-        </div>
-      ) : selectedPosition === "DEF" ? (
-        <PlayerList players={[]} defenses={defenses} displayStartSit={false} />
-      ) : (
-        <PlayerList players={offensivePlayers} displayStartSit={false} />
-      )}
+      {isLoading ?
+        <LoadingMessage message="Loading players..." />
+        : selectedPosition === "DEF" ? (
+          <PlayerList players={[]} defenses={defenses} displayStartSit={false} />
+        ) : (
+          <PlayerList players={offensivePlayers} displayStartSit={false} />
+        )}
     </AppNavWrapper>
   );
 }

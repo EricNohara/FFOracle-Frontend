@@ -4,7 +4,7 @@ import {
   ILeagueDefense,
 } from "@/app/interfaces/IUserData";
 
-export function formatGameInfo(game: IGameData, player: IPlayerInfo): string {
+export function formatGameInfo(game?: IGameData, player?: IPlayerInfo): string {
   if (!game || !player) return "BYE";
 
   // Parse game datetime
@@ -33,8 +33,8 @@ export function formatGameInfo(game: IGameData, player: IPlayerInfo): string {
 
 // Function specifically for a defense/team
 export function formatTeamGameInfo(
-  game: IGameData,
-  teamData: ILeagueDefense
+  game?: IGameData,
+  teamData?: ILeagueDefense
 ): string {
   if (!game || !teamData) return "BYE";
 

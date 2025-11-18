@@ -44,8 +44,22 @@ export default function DashboardPage() {
         setSelectedLeagueData(league);
     };
 
+    const handleClickAdvice = () => {
+        const tokensRemaining = userData?.userInfo.tokens_left ?? 0;
+        const name = userData?.userInfo.fullname ? userData?.userInfo.fullname : "";
 
-    const button = <PrimaryColorButton onClick={() => router.push("/stats")}>Edit Roster</PrimaryColorButton>;
+        if (tokensRemaining <= 0) {
+            alert(`User ${name} has ${tokensRemaining} tokens remaining. Purchase more tokens to continue.`);
+            return;
+        }
+
+        alert(`User ${name}, would you like to spend one token to generate ai advice? Operation cannot be reversed. You will have ${tokensRemaining - 1} tokens remaining after this operation.`)
+
+        router.push(`/dashboard/advice?leagueId=${selectedLeagueData?.leagueId}`)
+    }
+
+    const editButton = <PrimaryColorButton onClick={() => router.push("/stats")}>Edit Roster</PrimaryColorButton>;
+    const adviceButton = <PrimaryColorButton onClick={handleClickAdvice}>Generate Advice</PrimaryColorButton>;
 
     // Secondary "button" as dropdown
     const leagueDropdown = (
@@ -59,7 +73,7 @@ export default function DashboardPage() {
     );
 
     return (
-        <AppNavWrapper title="ROSTER DASHBOARD" button1={button} button2={leagueDropdown}>
+        <AppNavWrapper title="ROSTER DASHBOARD" button1={(selectedLeagueData?.players?.length ?? 0) > 0 ? adviceButton : editButton} button2={leagueDropdown}>
             {selectedLeagueData ? (
                 <PlayerList players={selectedLeagueData.players ?? []} defenses={selectedLeagueData.defenses ?? []} />
             ) : (
