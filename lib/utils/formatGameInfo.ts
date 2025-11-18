@@ -5,7 +5,7 @@ import {
 } from "@/app/interfaces/IUserData";
 
 export function formatGameInfo(game: IGameData, player: IPlayerInfo): string {
-  if (!game || !player) return "";
+  if (!game || !player) return "BYE";
 
   // Parse game datetime
   const gameDate = new Date(game.game_datetime);
@@ -36,7 +36,7 @@ export function formatTeamGameInfo(
   game: IGameData,
   teamData: ILeagueDefense
 ): string {
-  if (!game || !teamData) return "";
+  if (!game || !teamData) return "BYE";
 
   const gameDate = new Date(game.game_datetime);
 

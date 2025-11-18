@@ -6,8 +6,9 @@ import { formatGameInfo, formatTeamGameInfo } from "@/lib/utils/formatGameInfo";
 import { headerFont } from "../localFont";
 
 interface IPlayerListProps {
-    players: IPlayerData[];
-    defenses?: ILeagueDefense[];
+  players: IPlayerData[];
+  defenses?: ILeagueDefense[];
+  displayStartSit?: boolean;
 }
 
 const ListWrapper = styled.div`
@@ -81,16 +82,16 @@ const PlayerStartSitTag = styled.div<{ $picked?: boolean }>`
 `;
 
 interface IPlayerPositionTagProps {
-    position: string;
+  position: string;
 }
 
 const positionColors: Record<string, string> = {
-    QB: "#E68544",
-    RB: "#DE742C",
-    WR: "#C75000",
-    TE: "#9E3F00",
-    K: "#744C32",
-    DEF: "#593B26",
+  QB: "#E68544",
+  RB: "#DE742C",
+  WR: "#C75000",
+  TE: "#9E3F00",
+  K: "#744C32",
+  DEF: "#593B26",
 };
 
 const PlayerPositionTag = styled.div<IPlayerPositionTagProps>`
@@ -107,59 +108,73 @@ const PlayerPositionTag = styled.div<IPlayerPositionTagProps>`
 
 const POSITION_ORDER = ["QB", "RB", "WR", "TE", "K", "DEF"];
 
-export default function PlayerList({ players, defenses = [] }: IPlayerListProps) {
-    const sortedPlayers = [...players].sort((a, b) => {
-        // Compare positions
-        const posDiff =
-            POSITION_ORDER.indexOf(a.player.position) - POSITION_ORDER.indexOf(b.player.position);
+export default function PlayerList({ players, defenses = [], displayStartSit = true }: IPlayerListProps) {
+  const sortedPlayers = [...players]
+    .filter((p): p is IPlayerData & { player: NonNullable<IPlayerData['player']> } =>
+      p != null && p.player != null && p.player.position != null
+    )
+    .sort((a, b) => {
+      // Compare positions
+      const posDiff =
+        POSITION_ORDER.indexOf(a.player.position) - POSITION_ORDER.indexOf(b.player.position);
 
-        if (posDiff !== 0) return posDiff;
+      if (posDiff !== 0) return posDiff;
 
-        // If positions are equal, sort by picked status (true first)
-        return Number(b.picked) - Number(a.picked);
+      // If positions are equal, sort by picked status (true first)
+      return Number(b.picked) - Number(a.picked);
     });
 
-    return (
-        <ListWrapper>
-            {sortedPlayers.map((playerData) => (
-                <PlayerCard key={playerData.player.id}>
-                    <PlayerSimpleData>
-                        <PlayerPositionTag position={playerData.player.position}>{playerData.player.position}</PlayerPositionTag>
-                        <PlayerImage
-                            src={playerData.player.headshot_url ?? "/default_player.png"}
-                            alt={playerData.player.name}
-                        />
-                        <PlayerInfo>
-                            <PlayerName className={headerFont.className}>{playerData.player.name}</PlayerName>
-                            <PlayerData>{playerData.player.team_id}</PlayerData>
-                            <PlayerData>{formatGameInfo(playerData.game, playerData.player)}</PlayerData>
-                            <PlayerData>{playerData.player.status_description}</PlayerData>
-                        </PlayerInfo>
-                    </PlayerSimpleData>
-                    <PlayerStartInfo>
-                        {<PlayerStartSitTag $picked={playerData.picked}>{playerData.picked ? "Start" : "Sit"}</PlayerStartSitTag>}
-                    </PlayerStartInfo>
-                </PlayerCard>
-            ))}
-            {defenses.map((def) => (
-                <PlayerCard key={def.team.id}>
-                    <PlayerSimpleData>
-                        <PlayerPositionTag position="DEF">DEF</PlayerPositionTag>
-                        <PlayerImage
-                            src={def.team.logo_url ?? "/default_player.png"}
-                            alt={def.team.name}
-                        />
-                        <PlayerInfo>
-                            <PlayerName className={headerFont.className}>{def.team.name}</PlayerName>
-                            <PlayerData>{def.team.id}</PlayerData>
-                            <PlayerData>{formatTeamGameInfo(def.game, def)}</PlayerData>
-                        </PlayerInfo>
-                    </PlayerSimpleData>
-                    <PlayerStartInfo>
-                        {<PlayerStartSitTag $picked={def.picked}>{def.picked ? "Start" : "Sit"}</PlayerStartSitTag>}
-                    </PlayerStartInfo>
-                </PlayerCard>
-            ))}
-        </ListWrapper>
-    );
+  return (
+    <ListWrapper>
+      {sortedPlayers.map((playerData) => (
+        playerData && playerData.player && playerData.player.name && playerData.player.headshot_url && playerData.player.position &&
+        < PlayerCard key={playerData.player.id} >
+          <PlayerSimpleData>
+            <PlayerPositionTag position={playerData.player.position}>{playerData.player.position}</PlayerPositionTag>
+
+            <PlayerImage
+              src={playerData.player.headshot_url ?? "/default_player.png"}
+              alt={playerData.player.name}
+            />
+            <PlayerInfo>
+              <PlayerName className={headerFont.className}>{playerData.player.name}</PlayerName>
+              <PlayerData>{playerData.player.team_id}</PlayerData>
+              <PlayerData>{formatGameInfo(playerData.game, playerData.player)}</PlayerData>
+              <PlayerData>{playerData.player.status_description}</PlayerData>
+            </PlayerInfo>
+          </PlayerSimpleData>
+          {displayStartSit &&
+            <PlayerStartInfo>
+              {<PlayerStartSitTag $picked={playerData.picked}>{playerData.picked ? "Start" : "Sit"}</PlayerStartSitTag>}
+            </PlayerStartInfo>
+          }
+        </PlayerCard>
+      ))
+      }
+      {
+        defenses.map((def) => (
+          def && def.team &&
+          <PlayerCard key={def.team.id}>
+            <PlayerSimpleData>
+              <PlayerPositionTag position="DEF">DEF</PlayerPositionTag>
+              <PlayerImage
+                src={def.team.logo_url ?? "/default_player.png"}
+                alt={def.team.name}
+              />
+              <PlayerInfo>
+                <PlayerName className={headerFont.className}>{def.team.name}</PlayerName>
+                <PlayerData>{def.team.id}</PlayerData>
+                <PlayerData>{formatTeamGameInfo(def.game, def)}</PlayerData>
+              </PlayerInfo>
+            </PlayerSimpleData>
+            {displayStartSit &&
+              <PlayerStartInfo>
+                {<PlayerStartSitTag $picked={def.picked}>{def.picked ? "Start" : "Sit"}</PlayerStartSitTag>}
+              </PlayerStartInfo>
+            }
+          </PlayerCard>
+        ))
+      }
+    </ListWrapper >
+  );
 }
