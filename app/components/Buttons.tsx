@@ -11,6 +11,15 @@ const ButtonBase = styled.button<{ $isFullWidth?: boolean }>`
   color: white;
   transition: 0.2s ease;
   width: ${({ $isFullWidth }) => ($isFullWidth ? "100%" : "auto")};
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    
+    &:hover {
+      background-color: inherit;
+    }
+  }
 `;
 
 const PrimaryButton = styled(ButtonBase)`

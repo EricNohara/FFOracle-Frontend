@@ -39,6 +39,14 @@ const Input = styled.input<{ $compact?: boolean }>`
     border-color: var(--color-primary);
   }
 
+  &:disabled {
+    background-color: var(--color-base-dark-2);
+    color: var(--color-txt-3);
+    border-color: var(--color-base-dark-3);
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
   &:-webkit-autofill,
   &:-webkit-autofill:hover,
   &:-webkit-autofill:focus {
@@ -62,6 +70,7 @@ interface ITextInputProps {
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
   compact?: boolean;
+  disabled?: boolean;
 }
 
 export default function TextInput({
@@ -72,7 +81,8 @@ export default function TextInput({
   type = "text",
   onChange,
   required = false,
-  compact = false
+  compact = false,
+  disabled = false
 }: ITextInputProps) {
   return (
     <InputWrapper>
@@ -86,6 +96,7 @@ export default function TextInput({
         onChange={onChange}
         required={required}
         $compact={compact}
+        disabled={disabled}
       />
     </InputWrapper>
   );
