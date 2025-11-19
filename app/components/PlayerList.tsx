@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { ILeagueDefense, IPlayerData } from "../interfaces/IUserData";
 import { formatGameInfo, formatTeamGameInfo } from "@/lib/utils/formatGameInfo";
 import { headerFont } from "../localFont";
+import { AddButton } from "./Buttons";
 
 interface IPlayerListProps {
   players: IPlayerData[];
@@ -11,6 +12,8 @@ interface IPlayerListProps {
   displayStartSit?: boolean;
   onPlayerClick?: (player: IPlayerData) => void; // callback when a player card is clicked
   onDefenseClick?: (player: ILeagueDefense) => void; // callback when a defense card is clicked
+  onPlayerAdd?: (player: IPlayerData) => void;
+  onDefenseAdd?: (player: ILeagueDefense) => void;
 }
 
 const ListWrapper = styled.div`
@@ -64,7 +67,7 @@ const PlayerInfo = styled.div`
     gap: 2rem;
   `;
 
-const PlayerStartInfo = styled.div`
+const EndPlayerCardContainer = styled.div`
   display: flex;
     gap: 2rem;
     justify-self: end;
@@ -119,7 +122,15 @@ export const PlayerPositionTag = styled.div<IPlayerPositionTagProps>`
 
 const POSITION_ORDER = ["QB", "RB", "WR", "TE", "K", "DEF"];
 
-export default function PlayerList({ players, defenses = [], displayStartSit = true, onPlayerClick, onDefenseClick }: IPlayerListProps) {
+export default function PlayerList({
+  players,
+  defenses = [],
+  displayStartSit = true,
+  onPlayerClick,
+  onDefenseClick,
+  onPlayerAdd,
+  onDefenseAdd
+}: IPlayerListProps) {
   const sortedPlayers = [...players]
     .filter((p): p is IPlayerData & { player: NonNullable<IPlayerData['player']> } =>
       p != null && p.player != null && p.player.position != null
@@ -155,11 +166,17 @@ export default function PlayerList({ players, defenses = [], displayStartSit = t
               <PlayerData>{playerData.player.status_description}</PlayerData>
             </PlayerInfo>
           </PlayerSimpleData>
-          {displayStartSit &&
-            <PlayerStartInfo>
-              {<PlayerStartSitTag $picked={playerData.picked}>{playerData.picked ? "Start" : "Sit"}</PlayerStartSitTag>}
-            </PlayerStartInfo>
-          }
+          <EndPlayerCardContainer>
+            {displayStartSit && <PlayerStartSitTag $picked={playerData.picked}>{playerData.picked ? "Start" : "Sit"}</PlayerStartSitTag>}
+            {onPlayerAdd &&
+              <AddButton onClick={
+                (e) => {
+                  e.stopPropagation();
+                  onPlayerAdd(playerData);
+                }}
+              />
+            }
+          </EndPlayerCardContainer>
         </PlayerCard>
       ))
       }
@@ -180,11 +197,17 @@ export default function PlayerList({ players, defenses = [], displayStartSit = t
                 <PlayerData>{formatTeamGameInfo(def.game, def)}</PlayerData>
               </PlayerInfo>
             </PlayerSimpleData>
-            {displayStartSit &&
-              <PlayerStartInfo>
-                {<PlayerStartSitTag $picked={def.picked}>{def.picked ? "Start" : "Sit"}</PlayerStartSitTag>}
-              </PlayerStartInfo>
-            }
+            <EndPlayerCardContainer>
+              {displayStartSit && <PlayerStartSitTag $picked={def.picked}>{def.picked ? "Start" : "Sit"}</PlayerStartSitTag>}
+              {onDefenseAdd &&
+                <AddButton onClick={
+                  (e) => {
+                    e.stopPropagation();
+                    onDefenseAdd(def);
+                  }}
+                />
+              }
+            </EndPlayerCardContainer>
           </PlayerCard>
         ))
       }

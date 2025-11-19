@@ -12,7 +12,7 @@ import PlayerList from "@/app/components/PlayerList";
 import { ILeagueDefense, IPlayerData } from "@/app/interfaces/IUserData";
 import { getCachedAdvice, setCachedAdvice } from "@/lib/utils/cachedAdvice";
 import styled from "styled-components";
-import Overlay from "@/app/components/Overlay";
+import Overlay from "@/app/components/Overlay/Overlay";
 import { PlayerPositionTag } from "@/app/components/PlayerList";
 import { formatGameInfo, formatTeamGameInfo } from "@/lib/utils/formatGameInfo";
 

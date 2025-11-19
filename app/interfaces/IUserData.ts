@@ -27,7 +27,7 @@ export interface IPlayerData {
   picked: boolean;
   opponent: IOpponentTeam;
   seasonStats: IPlayerStats;
-  weeklyStats: IPlayerStats[];
+  weeklyStats: IPlayerStatsWithWeek[];
 }
 
 export interface IGameData {
@@ -93,33 +93,38 @@ export interface ITeamDefensiveStats {
 
 export interface IPlayerStats {
   id: string;
-  carries: number | null;
-  targets: number | null;
-  receptions: number | null;
+  passing_attempts: number | null;
   completions: number | null;
   passing_epa: number | null;
-  passing_tds: number | null;
-  pat_percent: number | null;
-  rushing_epa: number | null;
-  rushing_tds: number | null;
-  fg_made_list: number[] | null;
-  pat_attempts: number | null;
   passing_yards: number | null;
-  receiving_epa: number | null;
-  receiving_tds: number | null;
-  rushing_yards: number | null;
+  passing_first_downs: number | null;
+  passing_tds: number | null;
   sacks_against: number | null;
-  fantasy_points: number | null;
+  interceptions_against: number | null;
+  fumbles_against: number | null;
+  carries: number | null;
+  rushing_yards: number | null;
+  rushing_epa: number | null;
+  rushing_first_downs: number | null;
+  rushing_tds: number | null;
+  targets: number | null;
+  receptions: number | null;
+  receiving_yards: number | null;
+  receiving_epa: number | null;
+  receiving_first_downs: number | null;
+  receiving_tds: number | null;
+  pat_attempts: number | null;
+  pat_percent: number | null;
+  fg_made_list: number[] | null;
   fg_missed_list: number[] | null;
   fg_blocked_list: number[] | null;
-  fumbles_against: number | null;
-  receiving_yards: number | null;
-  passing_attempts: number | null;
+  fantasy_points: number | null;
   fantasy_points_ppr: number | null;
-  passing_first_downs: number | null;
-  rushing_first_downs: number | null;
-  interceptions_against: number | null;
-  receiving_first_downs: number | null;
+}
+
+export interface IPlayerStatsWithWeek {
+  week: number;
+  stats: IPlayerStats;
 }
 
 export interface IRosterSettings {

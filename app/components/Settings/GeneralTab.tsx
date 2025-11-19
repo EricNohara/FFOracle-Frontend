@@ -5,7 +5,7 @@ import styled from "styled-components";
 import TextInput from "@/app/components/TextInput";
 import ToggleSwitch from "@/app/components/ToggleSwitch";
 import { PrimaryColorButton, SecondaryColorButton } from "@/app/components/Buttons";
-import Overlay from "@/app/components/Overlay";
+import Overlay from "@/app/components/Overlay/Overlay";
 import PurchaseTab from "./PurchaseTab";
 
 const TabContent = styled.div`
@@ -81,52 +81,52 @@ export default function GeneralTab({
           onChange={(e) => onEmailChange(e.target.value)}
         />
 
-      <TextInput
-        label="Phone Number"
-        name="phoneNumber"
-        type="tel"
-        value={phoneNumber}
-        placeholder="636-337-4833"
-        onChange={(e) => onPhoneNumberChange(e.target.value)}
-      />
+        <TextInput
+          label="Phone Number"
+          name="phoneNumber"
+          type="tel"
+          value={phoneNumber}
+          placeholder="636-337-4833"
+          onChange={(e) => onPhoneNumberChange(e.target.value)}
+        />
 
-      <TextInput
-        label="Full Name"
-        name="fullname"
-        value={fullname}
-        placeholder="John Doe"
-        onChange={(e) => onFullnameChange(e.target.value)}
-      />
+        <TextInput
+          label="Full Name"
+          name="fullname"
+          value={fullname}
+          placeholder="John Doe"
+          onChange={(e) => onFullnameChange(e.target.value)}
+        />
 
-      <TextInput 
-       label = "Tokens Left"
-       name = "tokensLeft"
-       value = "0"
-       placeholder = "0"
-       onChange = {() => {}}
-       compact = {true}
-       disabled = {true}
-      />
+        <TextInput
+          label="Tokens Left"
+          name="tokensLeft"
+          value="0"
+          placeholder="0"
+          onChange={() => { }}
+          compact={true}
+          disabled={true}
+        />
 
-      <ToggleSwitch
-        label="Allow Auto-generated Articles"
-        checked={allowEmails}
-        onChange={onAllowEmailsChange}
-      />
+        <ToggleSwitch
+          label="Allow Auto-generated Articles"
+          checked={allowEmails}
+          onChange={onAllowEmailsChange}
+        />
 
-      <ButtonContainer>
-        <PrimaryColorButton onClick={() => setOpenPurchase(true)}>
-          Purchase Tokens
-        </PrimaryColorButton>
-        <SecondaryColorButton onClick={handleChangePassword}>
-          Change Password
-        </SecondaryColorButton>
-      </ButtonContainer>
-    </TabContent>
+        <ButtonContainer>
+          <PrimaryColorButton onClick={() => setOpenPurchase(true)}>
+            Purchase Tokens
+          </PrimaryColorButton>
+          <SecondaryColorButton onClick={handleChangePassword}>
+            Change Password
+          </SecondaryColorButton>
+        </ButtonContainer>
+      </TabContent>
 
-    <Overlay isOpen={openPurchase} onClose={handleClosePurchase}>
-      <PurchaseTab key = {purchaseKey}/>
-    </Overlay>
+      <Overlay isOpen={openPurchase} onClose={handleClosePurchase}>
+        <PurchaseTab key={purchaseKey} />
+      </Overlay>
     </>
   );
 }

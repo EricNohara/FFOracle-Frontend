@@ -19,13 +19,13 @@ const SpinnerWrapper = styled.div<{ size: number; color: string }>`
 
 // Props interface
 interface LoadingSpinnerProps {
-    size?: number;
-    color?: string;
+  size?: number;
+  color?: string;
 }
 
 // Spinner component
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 40, color = "var(--color-primary)" }) => {
-    return <SpinnerWrapper size={size} color={color} />;
+  return <SpinnerWrapper size={size} color={color} />;
 };
 
 export default LoadingSpinner;
