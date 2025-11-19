@@ -12,6 +12,7 @@ import { useSearchParams } from "next/navigation";
 import Overlay from "../components/Overlay/Overlay";
 import PlayerStatsOverlay from "../components/Overlay/PlayerStatsOverlay";
 import DefenseStatsOverlay from "../components/Overlay/DefenseStatsOverlay";
+import { isSpaceRemainingForPlayerAtPosition } from "@/lib/utils/rosterSlots";
 
 const LeagueDropdown = styled.select`
   padding: 0.5rem 1rem;
@@ -108,8 +109,12 @@ export default function StatsPage() {
     setSelectedDefense(defense);
     setSelectedPlayer(null);
 
-    // if ()
+    if (isSpaceRemainingForPlayerAtPosition(selectedLeagueData, selectedPosition)) {
+      alert("Player has space on their roster. Make the PUT route call here!");
+      return;
+    }
 
+    // only show the overlay for choosing players to swap if the roster is full at that position
     setShowAddOverlay(true);
     setShowStatsOverlay(false);
   }
@@ -123,6 +128,13 @@ export default function StatsPage() {
   const onPlayerAdd = (player: IPlayerData) => {
     setSelectedPlayer(player);
     setSelectedDefense(null);
+
+    if (isSpaceRemainingForPlayerAtPosition(selectedLeagueData, selectedPosition)) {
+      alert("Player has space on their roster. Make the PUT route call here!");
+      return;
+    }
+
+    // only show the overlay for choosing players to swap if the roster is full at that position
     setShowAddOverlay(true);
     setShowStatsOverlay(false);
   }
