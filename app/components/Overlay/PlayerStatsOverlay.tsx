@@ -6,6 +6,7 @@ import { PlayerPositionTag } from "../PlayerList";
 import { formatGameInfo } from "@/lib/utils/formatGameInfo";
 import PlayerSeasonStatsTable from "./PlayerSeasonStatsTable";
 import PlayerWeeklyStatsTable from "./PlayerWeeklyStatsTable";
+import { AddButton } from "../Buttons";
 
 const OverlayHeader = styled.div`
   position: relative;
@@ -61,27 +62,18 @@ const OverlayBody = styled.div`
   }
 `;
 
-const StatsTable = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  color: white;
-
-  th, td {
-    border: 1px solid var(--color-base-dark-2);
-    padding: 0.5rem;
-    text-align: center;
-  }
-
-  th {
-    background-color: var(--color-base-dark-4);
-  }
+const AddButtonWrapper = styled.div`
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
 `;
 
 interface IPlayerStatsOverlayProps {
   player: IPlayerData | null;
+  onPlayerAdd?: (player: IPlayerData) => void
 }
 
-export default function PlayerStatsOverlay({ player }: IPlayerStatsOverlayProps) {
+export default function PlayerStatsOverlay({ player, onPlayerAdd }: IPlayerStatsOverlayProps) {
   if (!player) return null;
 
   const seasonStats = player.seasonStats ?? {};
@@ -101,6 +93,12 @@ export default function PlayerStatsOverlay({ player }: IPlayerStatsOverlayProps)
             {player.player.position}
           </PlayerPositionTag>
         </PositionTagWrapper>
+        {
+          onPlayerAdd &&
+          <AddButtonWrapper>
+            <AddButton onClick={() => onPlayerAdd(player)} />
+          </AddButtonWrapper>
+        }
       </OverlayHeader>
 
       <OverlayBody>

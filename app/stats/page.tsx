@@ -106,6 +106,9 @@ export default function StatsPage() {
   );
 
   const onDefenseAdd = (defense: ILeagueDefense) => {
+    setSelectedDefense(defense);
+    setSelectedPlayer(null);
+    setShowStatsOverlay(false);
     setShowAddOverlay(true);
   }
 
@@ -116,6 +119,9 @@ export default function StatsPage() {
   }
 
   const onPlayerAdd = (player: IPlayerData) => {
+    setSelectedPlayer(player);
+    setSelectedDefense(null);
+    setShowStatsOverlay(false);
     setShowAddOverlay(true);
   }
 
@@ -138,13 +144,14 @@ export default function StatsPage() {
       {/* overlays */}
       {showAddOverlay &&
         <Overlay isOpen={showAddOverlay} onClose={() => setShowAddOverlay(false)}>
-          Add overlay
+          {selectedPlayer && `Adding ${selectedPlayer.player.name}`}
+          {selectedDefense && `Adding ${selectedDefense.team.name}`}
         </Overlay>
       }
       {showStatsOverlay &&
         <Overlay isOpen={showStatsOverlay} onClose={() => setShowStatsOverlay(false)}>
-          {selectedPlayer && <PlayerStatsOverlay player={selectedPlayer} />}
-          {selectedDefense && <DefenseStatsOverlay defense={selectedDefense} />}
+          {selectedPlayer && <PlayerStatsOverlay player={selectedPlayer} onPlayerAdd={onPlayerAdd} />}
+          {selectedDefense && <DefenseStatsOverlay defense={selectedDefense} onAddDefense={onDefenseAdd} />}
         </Overlay>
       }
     </AppNavWrapper>

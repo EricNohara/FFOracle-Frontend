@@ -6,6 +6,7 @@ import { PlayerPositionTag } from "../PlayerList";
 import { formatTeamGameInfo } from "@/lib/utils/formatGameInfo";
 import TeamDefenseStatsTable from "./TeamDefenseStatsTable";
 import TeamOffenseStatsTable from "./TeamOffenseStatsTable";
+import { AddButton } from "../Buttons";
 
 const OverlayHeader = styled.div`
   position: relative;
@@ -77,11 +78,18 @@ const OpponentData = styled.p`
     font-weight: normal;
 `;
 
+const AddButtonWrapper = styled.div`
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+`;
+
 interface IDefenseStatsOverlayProps {
     defense: ILeagueDefense | null;
+    onAddDefense?: (defense: ILeagueDefense) => void
 }
 
-export default function DefenseStatsOverlay({ defense }: IDefenseStatsOverlayProps) {
+export default function DefenseStatsOverlay({ defense, onAddDefense }: IDefenseStatsOverlayProps) {
     if (!defense) return null;
 
     const seasonStats = defense.seasonStats ?? {};
@@ -99,6 +107,12 @@ export default function DefenseStatsOverlay({ defense }: IDefenseStatsOverlayPro
                 <PositionTagWrapper>
                     <PlayerPositionTag position="DEF">DEF</PlayerPositionTag>
                 </PositionTagWrapper>
+                {
+                    onAddDefense &&
+                    <AddButtonWrapper>
+                        <AddButton onClick={() => onAddDefense(defense)} />
+                    </AddButtonWrapper>
+                }
             </OverlayHeader>
 
             <OverlayBody>

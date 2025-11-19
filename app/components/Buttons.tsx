@@ -1,6 +1,7 @@
 import { ReactNode, ButtonHTMLAttributes } from "react"
 import { headerFont } from "../localFont"
 import styled from "styled-components"
+import { Plus } from "lucide-react";
 
 const ButtonBase = styled.button<{ $isFullWidth?: boolean }>`
   padding: 0.5rem 1.5rem;
@@ -73,14 +74,19 @@ export function PrimaryColorButton({ children, isFullWidth, ...props }: ButtonPr
   );
 }
 
-export function PrimaryColorSmallButton({ children, isFullWidth, ...props }: ButtonProps) {
+interface AddButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  href?: string;
+  isFullWidth?: boolean;
+}
+
+export function AddButton({ isFullWidth, ...props }: AddButtonProps) {
   return (
     <PrimarySmallButton
       className={headerFont.className}
       $isFullWidth={isFullWidth}
       {...props}
     >
-      {children}
+      <Plus size={30} />
     </PrimarySmallButton>
   );
 }

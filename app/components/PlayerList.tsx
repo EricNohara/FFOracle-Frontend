@@ -4,8 +4,7 @@ import styled from "styled-components";
 import { ILeagueDefense, IPlayerData } from "../interfaces/IUserData";
 import { formatGameInfo, formatTeamGameInfo } from "@/lib/utils/formatGameInfo";
 import { headerFont } from "../localFont";
-import { PrimaryColorSmallButton } from "./Buttons";
-import { Plus } from "lucide-react";
+import { AddButton } from "./Buttons";
 
 interface IPlayerListProps {
   players: IPlayerData[];
@@ -170,14 +169,13 @@ export default function PlayerList({
           <EndPlayerCardContainer>
             {displayStartSit && <PlayerStartSitTag $picked={playerData.picked}>{playerData.picked ? "Start" : "Sit"}</PlayerStartSitTag>}
             {onPlayerAdd &&
-              <PrimaryColorSmallButton onClick={
+              <AddButton onClick={
                 (e) => {
                   e.stopPropagation();
                   onPlayerAdd(playerData);
                 }}
-              >
-                <Plus size={30} />
-              </PrimaryColorSmallButton>}
+              />
+            }
           </EndPlayerCardContainer>
         </PlayerCard>
       ))
@@ -202,14 +200,13 @@ export default function PlayerList({
             <EndPlayerCardContainer>
               {displayStartSit && <PlayerStartSitTag $picked={def.picked}>{def.picked ? "Start" : "Sit"}</PlayerStartSitTag>}
               {onDefenseAdd &&
-                <PrimaryColorSmallButton onClick={
+                <AddButton onClick={
                   (e) => {
                     e.stopPropagation();
                     onDefenseAdd(def);
                   }}
-                >
-                  <Plus size={30} />
-                </PrimaryColorSmallButton>}
+                />
+              }
             </EndPlayerCardContainer>
           </PlayerCard>
         ))
