@@ -1,6 +1,6 @@
 import { ILeagueData } from "@/app/interfaces/IUserData";
 
-const FLEX_ELIGIBLE = ["RB", "WR", "TE"];
+export const FLEX_ELIGIBLE = ["RB", "WR", "TE"];
 
 export function getRosterSlotsByPosition(
   league: ILeagueData | null,

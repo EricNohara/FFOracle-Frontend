@@ -12,7 +12,9 @@ import { useSearchParams } from "next/navigation";
 import Overlay from "../components/Overlay/Overlay";
 import PlayerStatsOverlay from "../components/Overlay/PlayerStatsOverlay";
 import DefenseStatsOverlay from "../components/Overlay/DefenseStatsOverlay";
-import { isSpaceRemainingForPlayerAtPosition } from "@/lib/utils/rosterSlots";
+import { FLEX_ELIGIBLE, isSpaceRemainingForPlayerAtPosition } from "@/lib/utils/rosterSlots";
+import { PrimaryColorButton } from "../components/Buttons";
+import { createClient } from "@/lib/supabase/client";
 
 const LeagueDropdown = styled.select`
   padding: 0.5rem 1rem;
@@ -39,6 +41,8 @@ export default function StatsPage() {
   const [showStatsOverlay, setShowStatsOverlay] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<IPlayerData | null>(null);
   const [selectedDefense, setSelectedDefense] = useState<ILeagueDefense | null>(null);
+  const [selectedPlayerToSwap, setSelectedPlayerToSwap] = useState<IPlayerData | null>(null);
+  const [selectedDefenseToSwap, setSelectedDefenseToSwap] = useState<ILeagueDefense | null>(null);
 
   const searchParams = useSearchParams();
   const leagueId = searchParams.get("leagueId");
@@ -145,6 +149,47 @@ export default function StatsPage() {
     setSelectedPlayer(player);
   }
 
+  const onPlayerSwapClick = async () => {
+    try {
+      // get the session
+      const supabase = createClient();
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) throw new Error("User not authenticated");
+
+      // construct payload for player/defense updates
+      const payload = {
+        leagueId: selectedLeagueData?.leagueId,
+        oldMemberId: selectedPlayerToSwap ? selectedPlayerToSwap?.player.id : selectedDefenseToSwap?.team.id,
+        oldIsDefense: selectedDefenseToSwap ? true : false,
+        newMemberId: selectedPlayer ? selectedPlayer?.player.id : selectedDefense?.team.id,
+        newIsDefense: selectedDefense ? true : false
+      };
+
+      // call the swap endpoint
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/member`,
+        {
+          method: "PUT",
+          headers: {
+            "Authorization": `Bearer ${accessToken}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+      if (!res.ok) throw new Error("Player swap failed");
+    } catch (e) {
+      alert("Player swap failed")
+      console.error(e);
+    } finally {
+      // unselect the player and the player to swap
+      setShowAddOverlay(false);
+      setSelectedPlayer(null);
+      setSelectedDefense(null);
+      setSelectedPlayerToSwap(null);
+      setSelectedDefenseToSwap(null);
+    }
+  }
+
   return (
     <AppNavWrapper title="LEAGUE STATS" button1={positionDropdown} button2={leagueDropdown}>
       {isLoading ?
@@ -158,8 +203,29 @@ export default function StatsPage() {
       {/* overlays */}
       {showAddOverlay &&
         <Overlay isOpen={showAddOverlay} onClose={() => setShowAddOverlay(false)}>
+          <h1>Your roster is full. Select a player to swap out.</h1>
+          <PlayerList
+            // return all players of the position or all flex eligible players
+            players={
+              selectedPosition !== "DEF" ?
+                selectedLeagueData?.players.filter((p) => {
+                  if (FLEX_ELIGIBLE.includes(selectedPosition)) {
+                    return FLEX_ELIGIBLE.includes(p.player.position);
+                  } else {
+                    return p.player.position === selectedPosition;
+                  }
+                }) ?? []
+                : []
+            }
+            onPlayerClick={(player: IPlayerData) => setSelectedPlayerToSwap(player)}
+
+            // same for defenses
+            defenses={selectedPosition === "DEF" ? selectedLeagueData?.defenses ?? [] : []}
+            onDefenseClick={(defense: ILeagueDefense) => setSelectedDefenseToSwap(defense)}
+          />
           {selectedPlayer && `Adding ${selectedPlayer.player.name}`}
           {selectedDefense && `Adding ${selectedDefense.team.name}`}
+          <PrimaryColorButton>Swap</PrimaryColorButton>
         </Overlay>
       }
       {showStatsOverlay &&
