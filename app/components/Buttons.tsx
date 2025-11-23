@@ -1,4 +1,4 @@
-import { ReactNode, ButtonHTMLAttributes } from "react"
+import React, { ReactNode, ButtonHTMLAttributes, ForwardedRef } from "react";
 import { headerFont } from "../localFont"
 import styled from "styled-components"
 import { Plus } from "lucide-react";
@@ -62,17 +62,24 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   isFullWidth?: boolean;
 }
 
-export function PrimaryColorButton({ children, isFullWidth, ...props }: ButtonProps) {
+export const PrimaryColorButton = React.forwardRef<
+  HTMLButtonElement,
+  ButtonProps
+>(({ children, isFullWidth, ...props }, ref: ForwardedRef<HTMLButtonElement>) => {
   return (
     <PrimaryButton
-      className={headerFont.className}
+      ref={ref}
       $isFullWidth={isFullWidth}
+      className={headerFont.className}
       {...props}
     >
       {children}
     </PrimaryButton>
   );
-}
+});
+
+// Optional: set displayName for better debugging
+PrimaryColorButton.displayName = "PrimaryColorButton";
 
 interface AddButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   href?: string;

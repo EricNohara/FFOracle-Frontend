@@ -5,6 +5,7 @@ import { ILeagueDefense, IPlayerData } from "../interfaces/IUserData";
 import { formatGameInfo, formatTeamGameInfo } from "@/lib/utils/formatGameInfo";
 import { headerFont } from "../localFont";
 import { AddButton } from "./Buttons";
+import { useState } from "react";
 
 interface IPlayerListProps {
   players: IPlayerData[];
@@ -14,6 +15,7 @@ interface IPlayerListProps {
   onDefenseClick?: (player: ILeagueDefense) => void; // callback when a defense card is clicked
   onPlayerAdd?: (player: IPlayerData) => void;
   onDefenseAdd?: (player: ILeagueDefense) => void;
+  selectable?: boolean;
 }
 
 const ListWrapper = styled.div`
@@ -22,19 +24,19 @@ const ListWrapper = styled.div`
   gap: 1rem;
 `;
 
-const PlayerCard = styled.div`
+const PlayerCard = styled.div<{ $selected?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem 1rem;
   border-radius: var(--global-border-radius);
-  background-color: var(--color-base-dark-3);
+  background-color: ${({ $selected }) => $selected ? "var(--color-base-dark-4);" : "var(--color-base-dark-3);"};
   color: white;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s ease;
+  border: ${({ $selected }) =>
+    $selected ? "2px solid var(--color-primary)" : "3px solid transparent"};
 
   &:hover {
-    transform: translateY(-2px);
     cursor: pointer;
   }
 `;
@@ -129,8 +131,11 @@ export default function PlayerList({
   onPlayerClick,
   onDefenseClick,
   onPlayerAdd,
-  onDefenseAdd
+  onDefenseAdd,
+  selectable = false
 }: IPlayerListProps) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
   const sortedPlayers = [...players]
     .filter((p): p is IPlayerData & { player: NonNullable<IPlayerData['player']> } =>
       p != null && p.player != null && p.player.position != null
@@ -150,7 +155,18 @@ export default function PlayerList({
     <ListWrapper>
       {sortedPlayers.map((playerData) => (
         playerData && playerData.player && playerData.player.name && playerData.player.headshot_url && playerData.player.position &&
-        < PlayerCard key={playerData.player.id} onClick={() => onPlayerClick && onPlayerClick(playerData)}>
+        < PlayerCard
+          key={playerData.player.id}
+          $selected={selectable && selectedId === playerData.player.id}
+          onClick={
+            () => {
+              onPlayerClick && onPlayerClick(playerData);
+              if (selectable) {
+                if (selectedId === playerData.player.id) setSelectedId(null);
+                else setSelectedId(playerData.player.id);
+              }
+            }
+          }>
           <PlayerSimpleData>
             <PlayerPositionTag position={playerData.player.position}>{playerData.player.position}</PlayerPositionTag>
 
@@ -183,7 +199,19 @@ export default function PlayerList({
       {
         defenses.map((def) => (
           def && def.team &&
-          <PlayerCard key={def.team.id} onClick={() => onDefenseClick && onDefenseClick(def)}>
+          <PlayerCard
+            key={def.team.id}
+            $selected={selectable && selectedId === def.team.id}
+            onClick={
+              () => {
+                onDefenseClick && onDefenseClick(def);
+                if (selectable) {
+                  if (selectedId === def.team.id) setSelectedId(null);
+                  else setSelectedId(def.team.id);
+                }
+              }
+            }
+          >
             <PlayerSimpleData>
               <PlayerPositionTag position="DEF">DEF</PlayerPositionTag>
               <DefenseImage
