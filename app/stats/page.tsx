@@ -12,7 +12,7 @@ import { useSearchParams } from "next/navigation";
 import Overlay from "../components/Overlay/Overlay";
 import PlayerStatsOverlay from "../components/Overlay/PlayerStatsOverlay";
 import DefenseStatsOverlay from "../components/Overlay/DefenseStatsOverlay";
-import { FLEX_ELIGIBLE, isSpaceRemainingForPlayerAtPosition } from "@/lib/utils/rosterSlots";
+import { FLEX_ELIGIBLE, getRosterSlotsByPosition, isSpaceRemainingForPlayerAtPosition } from "@/lib/utils/rosterSlots";
 import { PrimaryColorButton } from "../components/Buttons";
 import { createClient } from "@/lib/supabase/client";
 import { headerFont } from "../localFont";
@@ -359,15 +359,34 @@ export default function StatsPage() {
             </StickyHeader>
             <div style={{ padding: "2rem" }}>
               <PlayerList
-                players={selectedPosition !== "DEF"
-                  ? selectedLeagueData?.players.filter((p) => {
-                    if (FLEX_ELIGIBLE.includes(selectedPosition)) {
-                      return FLEX_ELIGIBLE.includes(p.player.position);
-                    } else {
-                      return p.player.position === selectedPosition;
-                    }
-                  }) ?? []
-                  : []
+                players={
+                  selectedPosition !== "DEF"
+                    ? selectedLeagueData?.players.filter((p) => {
+                      const pos = p.player.position;
+
+                      // Non-FLEX positions just filter normally
+                      if (!FLEX_ELIGIBLE.includes(selectedPosition)) {
+                        return pos === selectedPosition;
+                      }
+
+                      // FLEX selection: only FLEX-eligible positions
+                      if (!FLEX_ELIGIBLE.includes(pos)) return false;
+
+                      const maxPosSlots = getRosterSlotsByPosition(selectedLeagueData, pos);
+
+                      // Count how many players of this position are already picked
+                      const pickedCount = selectedLeagueData.players.filter(
+                        (pl) => pl.player.position === pos && pl.picked
+                      ).length;
+
+                      // Allow if this player exceeds normal position slots OR is the one being swapped
+                      if (pickedCount > maxPosSlots) return true;
+
+                      if (p.player.position === selectedPlayer?.player.position) return true;
+
+                      return false;
+                    }) ?? []
+                    : []
                 }
                 onPlayerClick={(player: IPlayerData) => {
                   if (selectedPlayerToSwap && selectedPlayerToSwap.player.id === player.player.id) {
