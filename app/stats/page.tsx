@@ -311,11 +311,11 @@ export default function StatsPage() {
   }
 
   const filteredOffensivePlayers = offensivePlayers.filter(p =>
-    p.player.name.toLowerCase().includes(searchQuery.toLowerCase())
+    p.player && p.player.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filteredDefenses = defenses.filter(d =>
-    d.team.name.toLowerCase().includes(searchQuery.toLowerCase())
+    d.team && d.team.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (

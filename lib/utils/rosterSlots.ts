@@ -36,57 +36,53 @@ export function isSpaceRemainingForPlayerAtPosition(
 ): boolean {
   if (!league || !league.rosterSettings) return false;
 
-  const totalSlots = getRosterSlotsByPosition(league, position);
-
-  // count currently rostered players at this exact position
-  const filledAtPosition =
-    position !== "DEF"
-      ? league.players.filter((p) => p.player.position === position).length
-      : league.defenses.length;
-
-  // get bench slots remaining
-  const benchSlots = getRosterSlotsByPosition(league, "BENCH");
-  const filledBenchSlots =
-    league.players.filter((p) => p.picked === false).length +
-    league.defenses.filter((d) => d.picked === false).length;
-  const remainingBenchSlots = Math.max(benchSlots - filledBenchSlots, 0);
-
-  // If there are position slots available, return those
-  if (totalSlots - filledAtPosition > 0 || remainingBenchSlots > 0) {
-    return true;
-  }
-
-  // if no space in player slots or bench for non flex, they can't be added without swapping a player
-  if (!FLEX_ELIGIBLE.includes(position)) {
-    return false;
-  }
-
-  // handle FLEX eligible players who are over their position's slot limit
+  const posSlots = getRosterSlotsByPosition(league, position);
   const flexSlots = getRosterSlotsByPosition(league, "FLEX");
+  const benchSlots = getRosterSlotsByPosition(league, "BENCH");
+  const isFlexEligible = FLEX_ELIGIBLE.includes(position);
 
-  // count how many total STARTING flex-eligible players exist already
-  const totalRb = league.players.filter(
-    (p) => p.player.position === "RB" && p.picked
-  ).length;
+  // Initialize usage
+  const perPositionUsed: Record<string, number> = {
+    QB: 0,
+    RB: 0,
+    WR: 0,
+    TE: 0,
+    K: 0,
+    DEF: 0,
+  };
+  let usedFlexSlots = 0;
+  let usedBenchSlots = 0;
 
-  const totalWr = league.players.filter(
-    (p) => p.player.position === "WR" && p.picked
-  ).length;
+  // Allocate players to their position slots first
+  league.players.forEach((p) => {
+    const pos = p.player.position;
+    const maxPos = getRosterSlotsByPosition(league, pos);
 
-  const totalTe = league.players.filter(
-    (p) => p.player.position === "TE" && p.picked
-  ).length;
+    if (perPositionUsed[pos] < maxPos) {
+      perPositionUsed[pos]++;
+    } else if (FLEX_ELIGIBLE.includes(pos) && usedFlexSlots < flexSlots) {
+      usedFlexSlots++;
+    } else {
+      usedBenchSlots++;
+    }
+  });
 
-  // count how many slots are available for each FLEx position
-  const rbSlots = getRosterSlotsByPosition(league, "RB");
-  const wrSlots = getRosterSlotsByPosition(league, "WR");
-  const teSlots = getRosterSlotsByPosition(league, "TE");
+  // Allocate defenses
+  league.defenses.forEach(() => {
+    const maxDef = getRosterSlotsByPosition(league, "DEF");
+    if (perPositionUsed["DEF"] < maxDef) {
+      perPositionUsed["DEF"]++;
+    } else {
+      usedBenchSlots++;
+    }
+  });
 
-  // add up the differences
-  let totalFlexSlots = 0;
-  totalFlexSlots += totalRb > rbSlots ? totalRb - rbSlots : 0;
-  totalFlexSlots += totalWr > wrSlots ? totalWr - wrSlots : 0;
-  totalFlexSlots += totalTe > teSlots ? totalTe - teSlots : 0;
+  const benchRemaining = Math.max(benchSlots - usedBenchSlots, 0);
 
-  return flexSlots - totalFlexSlots > 0;
+  // ---- DECISION ----
+  if (perPositionUsed[position] < posSlots) return true; // position slot available
+  if (isFlexEligible && usedFlexSlots < flexSlots) return true; // flex slot available
+  if (benchRemaining > 0) return true; // bench slot available
+
+  return false; // no space
 }
