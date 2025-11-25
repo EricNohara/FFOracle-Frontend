@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={baseFont.className}>
+    <html lang="en" className={baseFont.className} suppressHydrationWarning>
       <body>
         <AuthProvider>
           <UserDataProvider>
