@@ -9,6 +9,7 @@ interface OverlayProps {
   children: ReactNode;
   isOpen: boolean;
   onClose: () => void;
+  height?: number;
 }
 
 const OverlayWrapper = styled.div<{ $isOpen: boolean }>`
@@ -25,13 +26,13 @@ const OverlayWrapper = styled.div<{ $isOpen: boolean }>`
   z-index: 1000;
 `;
 
-const OverlayContent = styled.div`
+const OverlayContent = styled.div<{ $height: number }>`
 position: relative;
   background-color: var(--color-base-dark-3);
   border-radius: var(--global-border-radius);
   color: white;
   width: 50%;
-  height: 80%;
+  height: ${({ $height }) => `${$height}%`};
 `;
 
 const CloseButton = styled.button`
@@ -52,10 +53,10 @@ const CloseButton = styled.button`
   }
 `;
 
-export default function Overlay({ children, isOpen, onClose }: OverlayProps) {
+export default function Overlay({ children, isOpen, onClose, height = 80 }: OverlayProps) {
   return (
     <OverlayWrapper $isOpen={isOpen} onClick={onClose}>
-      <OverlayContent onClick={(e) => e.stopPropagation()}>
+      <OverlayContent onClick={(e) => e.stopPropagation()} $height={height}>
         {children}
         <CloseButton onClick={onClose} aria-label="Close overlay">
           <X size={24} />

@@ -12,11 +12,11 @@ const Wrapper = styled.div<{ $sticky?: boolean }>`
     `}
 `;
 
-const SearchInput = styled.input`
+const SearchInput = styled.input<{ $color: string }>`
   width: 100%;
   padding: 0.75rem 1.5rem;
   border-radius: var(--global-border-radius);
-  background-color: var(--color-base-dark-4);
+  background-color: ${({ $color }) => $color || "transparent"};
   border: none;
   outline: none;
   font-size: 1rem;
@@ -28,12 +28,14 @@ const SearchInput = styled.input`
   }
 `;
 
+
 interface SearchBarProps {
   value: string;
   placeholder?: string;
   onChange: (value: string) => void;
   autoFocus?: boolean;
   sticky?: boolean;
+  color?: string;
 }
 
 export default function SearchBar({
@@ -41,7 +43,8 @@ export default function SearchBar({
   placeholder = "Search...",
   onChange,
   autoFocus = false,
-  sticky = false
+  sticky = false,
+  color = "var(--color-base-dark-4)"
 }: SearchBarProps) {
   return (
     <Wrapper $sticky={sticky}>
@@ -50,6 +53,7 @@ export default function SearchBar({
         placeholder={placeholder}
         autoFocus={autoFocus}
         onChange={(e) => onChange(e.target.value)}
+        $color={color}
       />
     </Wrapper>
   );

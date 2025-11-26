@@ -11,8 +11,13 @@ import PlayerList from "../components/PlayerList";
 import PlayerStatsOverlay from "../components/Overlay/PlayerStatsOverlay";
 import Overlay from "../components/Overlay/Overlay";
 import DefenseStatsOverlay from "../components/Overlay/DefenseStatsOverlay";
-import { createClient } from "@/lib/supabase/client";
 import GenericDropdown from "../components/GenericDropdown";
+import { authFetch } from "@/lib/supabase/authFetch";
+import { getCachedAdvice } from "@/lib/utils/cachedAdvice";
+import ConfirmAdviceModal from "../components/Overlay/ConfirmAdviceModal";
+import ConfirmSwapModal from "../components/Overlay/ConfirmSwapModal";
+import { canDefenseStartAtPosition, canPlayerStartAtPosition, getPlayersToSwapForNewStarter } from "@/lib/utils/rosterSlots";
+import SwapSelectionModal from "../components/Overlay/SwapSelectionModal";
 
 const NoDataMessage = styled.p`
     font-style: italic;
@@ -26,7 +31,11 @@ export default function DashboardPage() {
     const [showOverlay, setShowOverlay] = useState<boolean>(false);
     const [selectedPlayer, setSelectedPlayer] = useState<IPlayerData | null>(null);
     const [selectedDefense, setSelectedDefense] = useState<ILeagueDefense | null>(null);
-    const supabase = createClient();
+    const [showAdviceModal, setShowAdviceModal] = useState(false);
+    const [showSwapModal, setShowSwapModal] = useState(false);
+    const [swapTarget, setSwapTarget] = useState<IPlayerData | ILeagueDefense | null>(null);
+    const [swapChoices, setSwapChoices] = useState<(IPlayerData | ILeagueDefense)[]>([]);
+    const [showSwapSelectionModal, setShowSwapSelectionModal] = useState(false);
 
     // Set default selected league on load (first one)
     useEffect(() => {
@@ -35,25 +44,54 @@ export default function DashboardPage() {
         }
     }, [userData]);
 
-    const handleLeagueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const leagueId = e.target.value;
-        const league = userData?.leagues.find(l => l.leagueId === leagueId) ?? null;
-        setSelectedLeagueData(league);
+    const handleUseCached = () => {
+        setShowAdviceModal(false);
+        router.push(`/dashboard/advice?leagueId=${selectedLeagueData?.leagueId}&regenerate=false`);
+    };
+
+    const handleRegenerate = () => {
+        setShowAdviceModal(false);
+        router.push(`/dashboard/advice?leagueId=${selectedLeagueData?.leagueId}&regenerate=true`);
     };
 
     const handleClickAdvice = () => {
         const tokensRemaining = userData?.userInfo.tokens_left ?? 0;
-        const name = userData?.userInfo.fullname ? userData?.userInfo.fullname : "";
+        const name = userData?.userInfo.fullname ?? "";
+        const league = selectedLeagueData;
 
-        if (tokensRemaining <= 0) {
-            alert(`User ${name} has ${tokensRemaining} tokens remaining. Purchase more tokens to continue.`);
+        if (!league) {
+            alert("No league selected.");
             return;
         }
 
-        alert(`User ${name}, would you like to spend one token to generate ai advice? Operation cannot be reversed. You will have ${tokensRemaining - 1} tokens remaining after this operation.`)
+        const userId = userData?.userInfo.id;
+        const playerIds = league.players.map(p => p.player.id);
 
-        router.push(`/dashboard/advice?leagueId=${selectedLeagueData?.leagueId}`)
-    }
+        // 1. CHECK CACHE FIRST — SHOW MODAL
+        const cached = getCachedAdvice(userId ?? "", league.leagueId, playerIds);
+
+        if (cached) {
+            setShowAdviceModal(true);
+            return;
+        }
+
+        // 2. NO CACHE — MUST CONFIRM TOKEN SPEND
+        if (tokensRemaining <= 0) {
+            alert(`User ${name} has ${tokensRemaining} tokens remaining. Purchase more tokens.`);
+            return;
+        }
+
+        const confirmSpend = window.confirm(
+            `Generate new AI advice for ${league.leagueName}? This costs 1 token.\n\n` +
+            `You currently have ${tokensRemaining} tokens.\n` +
+            `You will have ${tokensRemaining - 1} remaining.`
+        );
+
+        if (!confirmSpend) return;
+
+        // 3. NAVIGATE TO GENERATE ADVICE
+        router.push(`/dashboard/advice?leagueId=${league.leagueId}&regenerate=true`);
+    };
 
     const editButton = <PrimaryColorButton onClick={() => router.push(`/stats?leagueId=${selectedLeagueData?.leagueId}`)}>Edit Roster</PrimaryColorButton>;
     const adviceButton = <PrimaryColorButton onClick={handleClickAdvice}>Generate Advice</PrimaryColorButton>;
@@ -83,10 +121,6 @@ export default function DashboardPage() {
 
     const onPlayerDelete = async (player: IPlayerData) => {
         try {
-            const { data: sessionData } = await supabase.auth.getSession();
-            const accessToken = sessionData?.session?.access_token;
-            if (!accessToken) throw new Error("User not authenticated");
-
             // construct payload for player/defense updates
             const payload = {
                 leagueId: selectedLeagueData?.leagueId,
@@ -94,15 +128,10 @@ export default function DashboardPage() {
                 isDefense: false
             };
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/member`,
-                {
-                    method: "DELETE",
-                    headers: {
-                        "Authorization": `Bearer ${accessToken}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payload)
-                });
+            const res = await authFetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/member`, {
+                method: "DELETE",
+                body: JSON.stringify(payload)
+            })
 
             if (!res.ok) throw new Error();
 
@@ -116,10 +145,6 @@ export default function DashboardPage() {
 
     const onDefenseDelete = async (defense: ILeagueDefense) => {
         try {
-            const { data: sessionData } = await supabase.auth.getSession();
-            const accessToken = sessionData?.session?.access_token;
-            if (!accessToken) throw new Error("User not authenticated");
-
             // construct payload for player/defense updates
             const payload = {
                 leagueId: selectedLeagueData?.leagueId,
@@ -127,13 +152,9 @@ export default function DashboardPage() {
                 isDefense: true
             };
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/member`,
+            const res = await authFetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/member`,
                 {
                     method: "DELETE",
-                    headers: {
-                        "Authorization": `Bearer ${accessToken}`,
-                        "Content-Type": "application/json"
-                    },
                     body: JSON.stringify(payload)
                 });
 
@@ -147,6 +168,80 @@ export default function DashboardPage() {
         }
     }
 
+    const handleToggleStartSit = (playerOrDefense: IPlayerData | ILeagueDefense) => {
+        setSwapTarget(playerOrDefense);
+        setShowSwapModal(true);
+    };
+
+    const handleConfirmStartSit = async () => {
+        if (!swapTarget || !selectedLeagueData) return;
+
+        const isPlayer = "player" in swapTarget;
+
+        // CASE 1 — User is trying to START someone who is currently SITTING
+        if (swapTarget.picked === false) {
+
+            let canStart = true;
+            let choices: (IPlayerData | ILeagueDefense)[] = [];
+
+            if (isPlayer) {
+                canStart = canPlayerStartAtPosition(selectedLeagueData, swapTarget.player.position);
+
+                if (!canStart) {
+                    choices = getPlayersToSwapForNewStarter(
+                        selectedLeagueData,
+                        swapTarget.player.position
+                    );
+                }
+
+            } else {
+                canStart = canDefenseStartAtPosition(selectedLeagueData);
+
+                if (!canStart) {
+                    choices = selectedLeagueData.defenses.filter(d => d.picked);
+                }
+            }
+
+            // If cannot start → show player list overlay instead of swapping
+            if (!canStart) {
+                setSwapChoices(choices);
+                setShowSwapModal(false);
+                setShowSwapSelectionModal(true);
+                return;
+            }
+        }
+
+        // CASE 2 — Player can start OR the user is switching to SIT
+        await performPickedSwap(swapTarget);
+    };
+
+    const performPickedSwap = async (target: IPlayerData | ILeagueDefense) => {
+        try {
+            const res = await authFetch(
+                `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/pickedStatus`,
+                {
+                    method: "PUT",
+                    body: JSON.stringify({
+                        league_id: selectedLeagueData!.leagueId,
+                        member_id: "player" in target ? target.player.id : target.team.id,
+                        picked: !target.picked,
+                        is_defense: !("player" in target),
+                    }),
+                }
+            );
+
+            if (!res.ok) throw new Error();
+
+            await refreshUserData();
+            setShowSwapModal(false);
+            setShowSwapSelectionModal(false);
+            setSwapTarget(null);
+        } catch (err) {
+            console.error(err);
+            alert("Failed to update lineup.");
+        }
+    };
+
     return (
         <AppNavWrapper title="ROSTER DASHBOARD" button1={(selectedLeagueData?.players?.length ?? 0) > 0 ? adviceButton : editButton} button2={leagueDropdown}>
             {selectedLeagueData ?
@@ -157,6 +252,7 @@ export default function DashboardPage() {
                             onPlayerClick={onPlayerClick}
                             defenses={selectedLeagueData.defenses ?? []}
                             onDefenseClick={onDefenseClick}
+                            onToggleStartSit={handleToggleStartSit}
                         />
                     ) : <NoDataMessage>Your roster is empty. Click edit roster to add players to your roster for this league.</NoDataMessage>
                 : (
@@ -171,6 +267,29 @@ export default function DashboardPage() {
                     {selectedDefense && <DefenseStatsOverlay defense={selectedDefense} onDeleteDefense={onDefenseDelete} />}
                 </Overlay>
             }
+            <ConfirmAdviceModal
+                isOpen={showAdviceModal}
+                onClose={() => setShowAdviceModal(false)}
+                onUseCached={handleUseCached}
+                onRegenerate={handleRegenerate}
+            />
+            <ConfirmSwapModal
+                isOpen={showSwapModal}
+                target={swapTarget}
+                onClose={() => setShowSwapModal(false)}
+                onConfirm={handleConfirmStartSit}
+            />
+            <SwapSelectionModal
+                isOpen={showSwapSelectionModal}
+                onClose={() => setShowSwapSelectionModal(false)}
+                choices={swapChoices}
+                onSelect={async (choice) => {
+                    // First bench the chosen player
+                    await performPickedSwap(choice);
+                    // Then start the new target
+                    await performPickedSwap(swapTarget!);
+                }}
+            />
         </AppNavWrapper>
     )
 }

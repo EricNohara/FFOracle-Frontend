@@ -12,6 +12,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import styled from 'styled-components';
 import { headerFont } from "@/app/localFont";
 import { PrimaryColorButton } from "@/app/components/Buttons";
+import { authFetch } from "@/lib/supabase/authFetch";
 
 // Make sure to call loadStripe outside of a component's render to avoid
 // recreating the Stripe object on every render.
@@ -142,71 +143,7 @@ interface CheckoutFormProps {
   onBack: () => void;
 }
 
-/* export default function CheckoutForm({ packageData, onBack }: CheckoutFormProps) {
-  const [clientSecret, setClientSecret] = useState<string>("");
-  const [paymentIntentId, setPaymentIntentId] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    // Create payment intent when component mounts
-    const createPaymentIntent = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/create-payment-intent`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            packageId: packageData.id,
-            amount: packageData.price * 100, // Convert to cents
-            tokens: packageData.tokens,
-            packageName: packageData.name
-          }),
-        });
-        const data = await response.json();
-        
-        if (isMounted) {
-          setClientSecret(data.clientSecret);
-          setPaymentIntentId(data.paymentIntentId);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error("Error creating payment intent:", error);
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    createPaymentIntent();
-
-  }, [packageData, paymentIntentId]);
-
-  const appearance = {
-    theme: 'stripe' as const,
-  };
-
-  if (loading || !clientSecret) {
-    return (
-      <CheckoutContainer>
-        <Title className={headerFont.className}>Loading...</Title>
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
-          <Spinner />
-        </div>
-      </CheckoutContainer>
-    );
-  }
-
-  return (
-    <Elements stripe={stripePromise} options={{ appearance, clientSecret }}>
-      <PaymentForm packageData={packageData} onBack={onBack} />
-    </Elements>
-  );
-} */
-
 export default function CheckoutForm({ packageData, onBack }: CheckoutFormProps) {
-  const backendUrl = 'localhost:5090';
-
   const stripe = useStripe();
   const elements = useElements();
 
@@ -221,15 +158,12 @@ export default function CheckoutForm({ packageData, onBack }: CheckoutFormProps)
     setIsError(false);
 
     try {
-      const res = await fetch(`http://${backendUrl}/api/stripe/create-payment-intent`, {
+      const res = await authFetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/Stripe/create-payment-intent`, {
         method: 'POST',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           packageId: packageData.id,
-          amount: packageData.price * 100,
+          amount: Math.round(packageData.price * 100),
           tokens: packageData.tokens,
           packageName: packageData.name,
         }),

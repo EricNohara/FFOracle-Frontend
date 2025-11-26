@@ -16,6 +16,7 @@ interface IPlayerListProps {
   onPlayerAdd?: (player: IPlayerData) => void;
   onDefenseAdd?: (player: ILeagueDefense) => void;
   selectable?: boolean;
+  onToggleStartSit?: (player: IPlayerData | ILeagueDefense) => void;
 }
 
 const ListWrapper = styled.div`
@@ -132,6 +133,7 @@ export default function PlayerList({
   onDefenseClick,
   onPlayerAdd,
   onDefenseAdd,
+  onToggleStartSit,
   selectable = false
 }: IPlayerListProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -183,7 +185,18 @@ export default function PlayerList({
             </PlayerInfo>
           </PlayerSimpleData>
           <EndPlayerCardContainer>
-            {displayStartSit && <PlayerStartSitTag $picked={playerData.picked}>{playerData.picked ? "Start" : "Sit"}</PlayerStartSitTag>}
+            {displayStartSit && (
+              <PlayerStartSitTag
+                $picked={playerData.picked}
+                onClick={(e) => {
+                  e.stopPropagation(); // prevent card click 
+                  onToggleStartSit?.(playerData);
+                }}
+                style={{ cursor: "pointer" }}
+              >
+                {playerData.picked ? "Start" : "Sit"}
+              </PlayerStartSitTag>
+            )}
             {onPlayerAdd &&
               <AddButton onClick={
                 (e) => {
@@ -226,7 +239,18 @@ export default function PlayerList({
               </PlayerInfo>
             </PlayerSimpleData>
             <EndPlayerCardContainer>
-              {displayStartSit && <PlayerStartSitTag $picked={def.picked}>{def.picked ? "Start" : "Sit"}</PlayerStartSitTag>}
+              {displayStartSit && (
+                <PlayerStartSitTag
+                  $picked={def.picked}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleStartSit?.(def);
+                  }}
+                  style={{ cursor: "pointer" }}
+                >
+                  {def.picked ? "Start" : "Sit"}
+                </PlayerStartSitTag>
+              )}
               {onDefenseAdd &&
                 <AddButton onClick={
                   (e) => {

@@ -1,97 +1,33 @@
 "use client";
 
 import AppNavWrapper from "../../components/AppNavWrapper";
-import { PrimaryColorButton } from "../../components/Buttons";
+import { PrimaryColorButton, SecondaryColorButton } from "../../components/Buttons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useUserData } from "@/app/context/UserDataProvider";
-import { createClient } from "@/lib/supabase/client";
 import { IAiAdviceResponse } from "@/app/interfaces/IAiAdviceResponse";
 import LoadingMessage from "@/app/components/LoadingMessage";
 import PlayerList from "@/app/components/PlayerList";
 import { ILeagueDefense, IPlayerData } from "@/app/interfaces/IUserData";
 import { getCachedAdvice, setCachedAdvice } from "@/lib/utils/cachedAdvice";
 import styled from "styled-components";
-import Overlay from "@/app/components/Overlay/Overlay";
-import { PlayerPositionTag } from "@/app/components/PlayerList";
-import { formatGameInfo, formatTeamGameInfo } from "@/lib/utils/formatGameInfo";
+import { authFetch } from "@/lib/supabase/authFetch";
+import AdviceReasoningOverlay from "@/app/components/Overlay/AdviceReasoningOverlay";
 
 const StartSitLabel = styled.h2`
     font-size: 1.5rem;
     font-weight: bold;
     color: white;
-    margin: 1rem;
-`;
-
-const OverlayContentWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  background-color: var(--color-base-dark-3);
-  border-radius: var(--global-border-radius);
-  color: white;
-`;
-
-const OverlayHeader = styled.div`
-    position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  background-color: var(--color-base-dark-4);
-  padding: 1rem;
-  padding-bottom: 0;
-  border-radius: var(--global-border-radius) var(--global-border-radius) 0 0;
-  gap: 2rem;
-`;
-
-const PlayerImage = styled.img`
-  height: 250px;
-  object-fit: cover;
-`;
-
-const NameStack = styled.div`
-  display: flex;
-  flex-direction: column;
-
-  h1 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-
-  h2 {
-    margin: 0;
-    font-size: 1rem;
-    color: var(--color-txt-3);
-  }
-`;
-
-const OverlayBody = styled.div`
-    padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-
-  h3 {
-    font-size: 1.15rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-  }
-`;
-
-const PositionTagWrapper = styled.div`
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
+    margin: 0.5rem 0;
 `;
 
 export default function DashboardPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const leagueId = searchParams.get("leagueId");
-    const supabase = createClient();
+    const regenerate = searchParams.get("regenerate") === "true";
 
-    const { userData } = useUserData();
+    const { userData, refreshUserData } = useUserData();
     const adviceCalledRef = useRef(false);
 
     const [advice, setAdvice] = useState<IAiAdviceResponse[]>([]);
@@ -120,24 +56,21 @@ export default function DashboardPage() {
         const userId = userData.userInfo.id;
         const playerIds = league.players.map(p => p.player.id);
 
-        const cached = getCachedAdvice(userId, leagueId, playerIds);
-        if (cached) {
-            setAdvice(cached);
-            setLoading(false);
-            return;
+        if (!regenerate) {
+            const cached = getCachedAdvice(userId, leagueId, playerIds);
+            if (cached) {
+                setAdvice(cached);
+                setLoading(false);
+                return;
+            }
         }
 
         adviceCalledRef.current = true;
 
         const generateAdvice = async () => {
             try {
-                const { data: sessionData } = await supabase.auth.getSession();
-                const accessToken = sessionData?.session?.access_token;
-                if (!accessToken) throw new Error("User not authenticated")
-
-                const res = await fetch(
+                const res = await authFetch(
                     `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/RosterPrediction?leagueId=${leagueId}`,
-                    { headers: { Authorization: `Bearer ${accessToken}` } }
                 );
 
                 const json = await res.json();
@@ -153,9 +86,7 @@ export default function DashboardPage() {
         };
 
         generateAdvice();
-    }, [leagueId, userData]);
-
-    const button = <PrimaryColorButton onClick={() => router.push("/dashboard")}>Back</PrimaryColorButton>;
+    }, [leagueId, userData, regenerate]);
 
     // Step 1: Collect picked playerIds
     const pickedPlayerIds = new Set(advice.filter(a => a.picked).map(a => a.playerId));
@@ -208,9 +139,61 @@ export default function DashboardPage() {
         }
     };
 
+    const handleSaveRosterChanges = async () => {
+        try {
+            await Promise.all(
+                advice.map((a) =>
+                    authFetch(
+                        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/pickedStatus`,
+                        {
+                            method: "PUT",
+                            body: JSON.stringify({
+                                league_id: leagueId,
+                                member_id: a.playerId,
+                                picked: a.picked,
+                                is_defense: a.position === "DEF",
+                            }),
+                        }
+                    )
+                )
+            );
+
+            alert("Updated roster with AI advice!");
+            refreshUserData();
+        } catch (error) {
+            console.error(error);
+            alert("Some updates failed.");
+        }
+    }
+
+    const saveRosterChangesButton = <PrimaryColorButton onClick={handleSaveRosterChanges}>Save Roster Changes</PrimaryColorButton>;
+    const backButton = <SecondaryColorButton onClick={() => router.push("/dashboard")}>Back</SecondaryColorButton>;
+
     return (
-        <AppNavWrapper title="AI ROSTER RECOMMENDATIONS" button1={button}>
-            {loading && <LoadingMessage message="Loading AI roster recommendations..." />}
+        <AppNavWrapper title="AI ROSTER RECOMMENDATIONS" button1={saveRosterChangesButton} button2={backButton}>
+            {loading &&
+                <LoadingMessage
+                    intervalMs={1000}
+                    messages={[
+                        "Gathering player data...",
+                        "Fetching league settings...",
+                        "Analyzing recent performance trends...",
+                        "Reviewing injury reports...",
+                        "Evaluating defensive matchups...",
+                        "Analyzing betting odds and implied totals...",
+                        "Checking player utilization rates...",
+                        "Reviewing red zone involvement...",
+                        "Assessing expected game script...",
+                        "Running predictive simulations...",
+                        "Consulting the fantasy gods...",
+                        "Double-checking matchup variables...",
+                        "Filtering out noise from trends...",
+                        "Making sure we're not biased by last week's boom game...",
+                        "Finalizing recommendations...",
+                        "Locking in the optimal choice...",
+                        "Preparing results...",
+                    ]}
+                />}
 
             {!loading && advice.length > 0 && (
                 <>
@@ -235,73 +218,14 @@ export default function DashboardPage() {
             {!loading && advice.length === 0 && <p>No advice available yet.</p>}
 
             {/* Overlay */}
-            {showOverlay && selectedPlayer && (
-                <Overlay isOpen={showOverlay} onClose={() => setShowOverlay(false)}>
-                    <OverlayContentWrapper>
-                        <OverlayHeader>
-                            <PlayerImage
-                                src={
-                                    selectedPlayer.position !== "DEF"
-                                        ? selectedPlayerData?.player.headshot_url ?? "default-player.png"
-                                        : selectedDefenseData?.team.logo_url ?? "default-defense.png"
-                                }
-                                alt={
-                                    selectedPlayer.position !== "DEF"
-                                        ? selectedPlayerData?.player.name
-                                        : selectedDefenseData?.team.name
-                                }
-                            />
-                            <NameStack>
-                                <h1>
-                                    {selectedPlayer.position !== "DEF"
-                                        ? selectedPlayerData?.player.name
-                                        : selectedDefenseData?.team.name}
-                                </h1>
-                                {selectedPlayer.position !== "DEF" && (
-                                    <>
-                                        <h2>{`${selectedPlayerData?.player.team_id} ${formatGameInfo(selectedPlayerData?.game, selectedPlayerData?.player)}`}</h2>
-                                        <h2>{selectedPlayerData?.player.status_description}</h2>
-                                        {selectedPlayerData?.game && <>
-                                            <h2>{selectedPlayerData?.game.stadium_name}</h2>
-                                            <h2>{selectedPlayerData?.game.stadium_style}</h2>
-                                        </>}
-                                    </>
-                                )}
-
-                                {selectedPlayer.position === "DEF" && (
-                                    <>
-                                        <h2>{`${selectedDefenseData?.team.id} ${formatTeamGameInfo(selectedPlayerData?.game, selectedDefenseData ?? undefined)}`}</h2>
-                                        {selectedDefenseData?.game && <>
-                                            <h2>{selectedDefenseData?.game.stadium_name}</h2>
-                                            <h2>{selectedDefenseData?.game.stadium_style}</h2>
-                                        </>}
-                                    </>
-                                )}
-                            </NameStack>
-                            <PositionTagWrapper>
-                                <PlayerPositionTag position={selectedPlayer.position}>
-                                    {selectedPlayer.position}
-                                </PlayerPositionTag>
-                            </PositionTagWrapper>
-                        </OverlayHeader>
-
-                        <OverlayBody>
-                            <div>
-                                <h3>Status:</h3>
-                                <p style={{ fontWeight: "bold", color: selectedPlayer.picked ? "var(--color-green)" : "var(--color-red)" }}>
-                                    {selectedPlayer.picked ? "Start" : "Sit"}
-                                </p>
-                            </div>
-                            <div>
-                                <h3>Reasoning: </h3>
-                                <p style={{ color: "var(--color-txt-2)" }}>
-                                    {selectedPlayer.reasoning}
-                                </p>
-                            </div>
-                        </OverlayBody>
-                    </OverlayContentWrapper>
-                </Overlay>
-            )}
+            <AdviceReasoningOverlay
+                isOpen={showOverlay}
+                onClose={() => setShowOverlay(false)}
+                advice={selectedPlayer!}
+                playerData={selectedPlayerData}
+                defenseData={selectedDefenseData}
+                leagueId={leagueId ?? ""}
+            />
         </AppNavWrapper >
     );
 }

@@ -14,10 +14,10 @@ import PlayerStatsOverlay from "../components/Overlay/PlayerStatsOverlay";
 import DefenseStatsOverlay from "../components/Overlay/DefenseStatsOverlay";
 import { FLEX_ELIGIBLE, getRosterSlotsByPosition, isSpaceRemainingForPlayerAtPosition } from "@/lib/utils/rosterSlots";
 import { PrimaryColorButton } from "../components/Buttons";
-import { createClient } from "@/lib/supabase/client";
 import { headerFont } from "../localFont";
 import GenericDropdown from "../components/GenericDropdown";
 import SearchBar from "../components/SearchBar";
+import { authFetch } from "@/lib/supabase/authFetch";
 
 const SelectPlayerOverlay = styled.div`
   display: flex;
@@ -53,7 +53,6 @@ const StickyHeader = styled.div`
 
 export default function StatsPage() {
   const { userData, refreshUserData } = useUserData();
-  const supabase = createClient();
   const [selectedLeagueData, setSelectedLeagueData] = useState<ILeagueData | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<string>("QB");
   const [showAddOverlay, setShowAddOverlay] = useState(false);
@@ -138,23 +137,14 @@ export default function StatsPage() {
       return;
     } else if (isSpaceRemainingForPlayerAtPosition(selectedLeagueData, selectedPosition)) {
       try {
-        // get the session
-        const { data: sessionData } = await supabase.auth.getSession();
-        const accessToken = sessionData?.session?.access_token;
-        if (!accessToken) throw new Error("User not authenticated");
-
         const payload = {
           leagueId: selectedLeagueData?.leagueId,
           memberId: defense.team.id,
           isDefense: true
         }
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/member`, {
+        const res = await authFetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/member`, {
           method: "POST",
-          headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json"
-          },
           body: JSON.stringify(payload)
         })
 
@@ -190,23 +180,14 @@ export default function StatsPage() {
       return;
     } else if (isSpaceRemainingForPlayerAtPosition(selectedLeagueData, selectedPosition)) {
       try {
-        // get the session
-        const { data: sessionData } = await supabase.auth.getSession();
-        const accessToken = sessionData?.session?.access_token;
-        if (!accessToken) throw new Error("User not authenticated");
-
         const payload = {
           leagueId: selectedLeagueData?.leagueId,
           memberId: player.player.id,
           isDefense: false
         }
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/member`, {
+        const res = await authFetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/member`, {
           method: "POST",
-          headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json"
-          },
           body: JSON.stringify(payload)
         })
 
@@ -235,11 +216,6 @@ export default function StatsPage() {
 
   const onPlayerSwapClick = async () => {
     try {
-      // get the session
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData?.session?.access_token;
-      if (!accessToken) throw new Error("User not authenticated");
-
       // construct payload for player/defense updates
       const payload = {
         leagueId: selectedLeagueData?.leagueId,
@@ -250,13 +226,9 @@ export default function StatsPage() {
       };
 
       // call the swap endpoint
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/member`,
+      const res = await authFetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/member`,
         {
           method: "PUT",
-          headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json"
-          },
           body: JSON.stringify(payload)
         });
 

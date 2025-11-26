@@ -241,6 +241,7 @@ export default function SettingsPage() {
                             phoneNumber={userInfo.phone_number || ""}
                             fullname={userInfo.fullname || ""}
                             allowEmails={userInfo.allow_emails}
+                            tokensLeft={userInfo.tokens_left}
                             onEmailChange={(v) => setUserInfo({ ...userInfo, email: v })}
                             onPhoneNumberChange={(v) =>
                                 setUserInfo({ ...userInfo, phone_number: v })
