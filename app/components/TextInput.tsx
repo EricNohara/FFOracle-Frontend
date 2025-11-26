@@ -67,6 +67,8 @@ interface ITextInputProps {
   value: string;
   placeholder?: string;
   type?: string;
+  min?: number;
+  step?: number;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
   compact?: boolean;
@@ -79,6 +81,8 @@ export default function TextInput({
   value,
   placeholder,
   type = "text",
+  min,
+  step,
   onChange,
   required = false,
   compact = false,
@@ -97,6 +101,8 @@ export default function TextInput({
         required={required}
         $compact={compact}
         disabled={disabled}
+        min={min}
+        step={step}
       />
     </InputWrapper>
   );

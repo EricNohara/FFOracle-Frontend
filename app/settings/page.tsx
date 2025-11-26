@@ -19,6 +19,7 @@ import SettingsTabs from "../components/Settings/SettingsTabs";
 import { useUserData } from "../context/UserDataProvider";
 import GenericDropdown from "../components/GenericDropdown";
 import styled from "styled-components";
+import { authFetch } from "@/lib/supabase/authFetch";
 
 const PageContainer = styled.div`
 padding-left: 1.5rem;
@@ -153,23 +154,9 @@ export default function SettingsPage() {
         if (!confirm("Are you sure? This cannot be undone.")) return;
 
         try {
-            const {
-                data: { session },
-            } = await supabase.auth.getSession();
-
-            if (!session?.access_token) {
-                alert("Not logged in.");
-                return;
-            }
-
-            const res = await fetch(
+            const res = await authFetch(
                 `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/Users`,
-                {
-                    method: "DELETE",
-                    headers: {
-                        Authorization: `Bearer ${session.access_token}`,
-                    },
-                }
+                { method: "DELETE", }
             );
 
             if (!res.ok) throw new Error(await res.text());
@@ -186,6 +173,23 @@ export default function SettingsPage() {
         }
     };
 
+    const handleDeleteLeague = async () => {
+        if (!confirm("Are you sure? This cannot be undone.")) return;
+
+        try {
+            const res = await authFetch(
+                `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague?leagueId=${selectedLeagueData?.leagueId}`,
+                { method: "DELETE", }
+            );
+
+            if (!res.ok) throw new Error();
+            alert("League deleted successfully");
+            refreshUserData();
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
 
     const saveButton = (
         <PrimaryColorButton onClick={handleSaveChanges}>
@@ -196,6 +200,12 @@ export default function SettingsPage() {
     const deleteUserButton = (
         <SecondaryColorButton onClick={handleDeleteUser}>
             Delete User
+        </SecondaryColorButton>
+    );
+
+    const deleteLeagueButton = (
+        <SecondaryColorButton onClick={handleDeleteLeague}>
+            Delete League
         </SecondaryColorButton>
     );
 
@@ -229,7 +239,8 @@ export default function SettingsPage() {
         <AppNavWrapper
             title="SETTINGS"
             button1={saveButton}
-            button2={activeTab === "general" ? deleteUserButton : leagueDropdown}
+            button2={activeTab === "general" ? deleteUserButton : deleteLeagueButton}
+            button3={activeTab !== "general" ? leagueDropdown : null}
         >
             <PageContainer>
                 <SettingsTabs activeTab={activeTab} onTabChange={setActiveTab} />

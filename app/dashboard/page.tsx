@@ -18,6 +18,7 @@ import ConfirmAdviceModal from "../components/Overlay/ConfirmAdviceModal";
 import ConfirmSwapModal from "../components/Overlay/ConfirmSwapModal";
 import { canDefenseStartAtPosition, canPlayerStartAtPosition, getPlayersToSwapForNewStarter } from "@/lib/utils/rosterSlots";
 import SwapSelectionModal from "../components/Overlay/SwapSelectionModal";
+import AddLeagueOverlay from "../components/Overlay/AddLeagueOverlay";
 
 const NoDataMessage = styled.p`
     font-style: italic;
@@ -36,6 +37,7 @@ export default function DashboardPage() {
     const [swapTarget, setSwapTarget] = useState<IPlayerData | ILeagueDefense | null>(null);
     const [swapChoices, setSwapChoices] = useState<(IPlayerData | ILeagueDefense)[]>([]);
     const [showSwapSelectionModal, setShowSwapSelectionModal] = useState(false);
+    const [showAddLeagueModal, setShowAddLeagueModal] = useState(false);
 
     // Set default selected league on load (first one)
     useEffect(() => {
@@ -95,6 +97,7 @@ export default function DashboardPage() {
 
     const editButton = <PrimaryColorButton onClick={() => router.push(`/stats?leagueId=${selectedLeagueData?.leagueId}`)}>Edit Roster</PrimaryColorButton>;
     const adviceButton = <PrimaryColorButton onClick={handleClickAdvice}>Generate Advice</PrimaryColorButton>;
+    const addLeagueButton = <PrimaryColorButton onClick={() => setShowAddLeagueModal(true)}>Add League</PrimaryColorButton>
 
     // Secondary "button" as dropdown
     const leagueDropdown = (
@@ -242,8 +245,33 @@ export default function DashboardPage() {
         }
     };
 
+    const handleCreateLeague = async (payload: any) => {
+        try {
+            const res = await authFetch(
+                `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/createLeague`,
+                {
+                    method: "POST",
+                    body: JSON.stringify(payload),
+                }
+            );
+
+            if (!res.ok) throw new Error("Failed to create league");
+
+            await refreshUserData();
+        } catch (err) {
+            console.error(err);
+            alert("Error creating league");
+        }
+    };
+
+
     return (
-        <AppNavWrapper title="ROSTER DASHBOARD" button1={(selectedLeagueData?.players?.length ?? 0) > 0 ? adviceButton : editButton} button2={leagueDropdown}>
+        <AppNavWrapper
+            title="ROSTER DASHBOARD"
+            button1={(selectedLeagueData?.players?.length ?? 0) > 0 ? adviceButton : editButton}
+            button2={leagueDropdown}
+            button3={addLeagueButton}
+        >
             {selectedLeagueData ?
                 ((selectedLeagueData.players?.length ?? 0) > 0 || (selectedLeagueData.defenses?.length ?? 0) > 0) ?
                     (
@@ -289,6 +317,11 @@ export default function DashboardPage() {
                     // Then start the new target
                     await performPickedSwap(swapTarget!);
                 }}
+            />
+            <AddLeagueOverlay
+                isOpen={showAddLeagueModal}
+                onClose={() => setShowAddLeagueModal(false)}
+                onCreate={handleCreateLeague}
             />
         </AppNavWrapper>
     )

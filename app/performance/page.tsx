@@ -21,7 +21,7 @@ const TablesContainer = styled.div`
 const TablePane = styled.div`
   flex: 1;
   min-height: 0;
-  display: flex; 
+  display: flex;
   flex-direction: column;
 `;
 
@@ -29,9 +29,18 @@ export default function PerformancePage() {
     const { userData } = useUserData();
     const supabase = createClient();
     const [selectedLeagueData, setSelectedLeagueData] = useState<ILeagueData | null>(null);
-    const [selectedWeek, setSelectedWeek] = useState<number>(1);
+    const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
     const [performance, setPerformance] = useState<IPerformanceResponse | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const players = selectedLeagueData?.players ?? [];
+    const hasPlayers = players.length > 0;
+
+    const availableWeeks = hasPlayers
+        ? Array.from(
+            new Set(players.flatMap((p) => p.weeklyStats?.map((ws) => ws.week) ?? []))
+        ).sort((a, b) => a - b)
+        : [];
 
     useEffect(() => {
         if (userData?.leagues && userData.leagues.length > 0) {
@@ -40,46 +49,52 @@ export default function PerformancePage() {
     }, [userData]);
 
     useEffect(() => {
-        if (!selectedLeagueData) return;
-
-        // calculate the max week for any player's weekly stats in your league
-        const maxWeek = Math.max(
-            1,
-            ...selectedLeagueData.players.flatMap(player =>
-                player.weeklyStats?.map(ws => ws.week) ?? []
-            )
-        );
-
-        setSelectedWeek(maxWeek);
-    }, [selectedLeagueData])
+        if (availableWeeks.length > 0) {
+            setSelectedWeek(availableWeeks[availableWeeks.length - 1]);
+        } else {
+            setSelectedWeek(null);
+        }
+    }, [selectedLeagueData]);
 
     useEffect(() => {
-        if (!selectedLeagueData) return;
+        if (!selectedLeagueData || selectedWeek === null) return;
 
         const fetcher = async () => {
             setIsLoading(true);
             try {
-                // get the session
                 const { data: sessionData } = await supabase.auth.getSession();
                 const accessToken = sessionData?.session?.access_token;
                 if (!accessToken) throw new Error("User not authenticated");
 
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/LeaguePerformance/${selectedLeagueData.leagueId}/week/${selectedWeek}`,
-                    { headers: { "Authorization": `Bearer ${accessToken}`, } }
+                const res = await fetch(
+                    `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/LeaguePerformance/${selectedLeagueData.leagueId}/week/${selectedWeek}`,
+                    { headers: { Authorization: `Bearer ${accessToken}` } }
                 );
 
-                if (!res.ok) throw new Error();
+                if (!res.ok) {
+                    setPerformance(null);
+                    return;
+                }
+
                 const data: IPerformanceResponse = await res.json();
                 setPerformance(data);
-            } catch (error) {
-                console.error(error);
+            } catch {
+                setPerformance(null);
             } finally {
                 setIsLoading(false);
             }
-        }
+        };
 
         fetcher();
-    }, [selectedWeek])
+    }, [selectedWeek, selectedLeagueData]);
+
+    if (!userData?.leagues?.length) {
+        return (
+            <AppNavWrapper title="PERFORMANCE">
+                <p style={{ color: "var(--color-txt-3)" }}>You have no leagues yet.</p>
+            </AppNavWrapper>
+        );
+    }
 
     const leagueDropdown = (
         <GenericDropdown
@@ -93,7 +108,7 @@ export default function PerformancePage() {
 
     const weekDropdown = (
         <GenericDropdown
-            items={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]}
+            items={availableWeeks}
             selected={selectedWeek}
             getKey={(week) => `Week ${week}`}
             getLabel={(week) => `Week ${week}`}
@@ -101,26 +116,29 @@ export default function PerformancePage() {
         />
     );
 
-    const playerNameMap = selectedLeagueData
-        ? Object.fromEntries(
-            selectedLeagueData.players.map((p) => [p.player.id, p.player.name])
-        )
-        : {};
+    if (!hasPlayers) {
+        return (
+            <AppNavWrapper title="PERFORMANCE" button1={leagueDropdown}>
+                <p style={{ color: "var(--color-txt-3)" }}>
+                    This league has no players yet. Add players to view performance.
+                </p>
+            </AppNavWrapper>
+        );
+    }
 
-    const playerPositionMap = selectedLeagueData
-        ? Object.fromEntries(
-            selectedLeagueData.players.map((p) => [p.player.id, p.player.position])
-        )
-        : {};
+    if (availableWeeks.length === 0) {
+        return (
+            <AppNavWrapper title="PERFORMANCE" button1={leagueDropdown}>
+                <p style={{ color: "var(--color-txt-3)" }}>
+                    No weekly performance data available yet.
+                </p>
+            </AppNavWrapper>
+        );
+    }
 
-    const playerHeadshotMap = selectedLeagueData
-        ? Object.fromEntries(
-            selectedLeagueData.players.map((p) => [
-                p.player.id,
-                p.player.headshot_url
-            ])
-        )
-        : {};
+    const playerNameMap = Object.fromEntries(players.map((p) => [p.player.id, p.player.name]));
+    const playerPositionMap = Object.fromEntries(players.map((p) => [p.player.id, p.player.position]));
+    const playerHeadshotMap = Object.fromEntries(players.map((p) => [p.player.id, p.player.headshot_url]));
 
     const positionOrder = ["QB", "RB", "WR", "TE", "K"];
 
@@ -141,24 +159,25 @@ export default function PerformancePage() {
             .sort((a, b) => {
                 const posA = positionOrder.indexOf(a.position);
                 const posB = positionOrder.indexOf(b.position);
-
-                // fallback for unknown positions
                 const orderA = posA === -1 ? 999 : posA;
                 const orderB = posB === -1 ? 999 : posB;
-
-                // first sort by position order, then by overall rank inside each group
                 if (orderA !== orderB) return orderA - orderB;
                 return a.overallRank - b.overallRank;
             });
 
     return (
         <AppNavWrapper title="PERFORMANCE" button1={leagueDropdown} button2={weekDropdown}>
-            {isLoading ?
-                <LoadingMessage message="Loading performance data..." /> :
+            {isLoading ? (
+                <LoadingMessage message="Loading performance data..." />
+            ) : (
                 <TablesContainer>
                     <TablePane>
                         <PerformanceTable<
-                            IWeeklyPlayerPerformance & { playerName: string; position: string; headshotUrl: string | null }
+                            IWeeklyPlayerPerformance & {
+                                playerName: string;
+                                position: string;
+                                headshotUrl: string | null;
+                            }
                         >
                             title="PLAYER PERFORMANCE"
                             columns={[
@@ -186,7 +205,7 @@ export default function PerformancePage() {
                         />
                     </TablePane>
                 </TablesContainer>
-            }
+            )}
         </AppNavWrapper>
-    )
+    );
 }

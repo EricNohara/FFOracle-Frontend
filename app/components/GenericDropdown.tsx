@@ -3,6 +3,7 @@
 import styled from "styled-components";
 
 const Select = styled.select`
+  width: 150px;
   padding: 0.5rem 1rem;
   border-radius: var(--global-border-radius);
   background-color: var(--color-base-dark-4);
@@ -11,9 +12,13 @@ const Select = styled.select`
   font-weight: bold;
   cursor: pointer;
   outline: none;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   option {
+    white-space: normal;
     background-color: var(--color-base-dark-3);
     color: white;
   }
