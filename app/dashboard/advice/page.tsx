@@ -171,7 +171,29 @@ export default function DashboardPage() {
 
     return (
         <AppNavWrapper title="AI ROSTER RECOMMENDATIONS" button1={saveRosterChangesButton} button2={backButton}>
-            {loading && <LoadingMessage message="Loading AI roster recommendations..." />}
+            {loading &&
+                <LoadingMessage
+                    intervalMs={1000}
+                    messages={[
+                        "Gathering player data...",
+                        "Fetching league settings...",
+                        "Analyzing recent performance trends...",
+                        "Reviewing injury reports...",
+                        "Evaluating defensive matchups...",
+                        "Analyzing betting odds and implied totals...",
+                        "Checking player utilization rates...",
+                        "Reviewing red zone involvement...",
+                        "Assessing expected game script...",
+                        "Running predictive simulations...",
+                        "Consulting the fantasy gods...",
+                        "Double-checking matchup variables...",
+                        "Filtering out noise from trends...",
+                        "Making sure we're not biased by last week's boom game...",
+                        "Finalizing recommendations...",
+                        "Locking in the optimal choice...",
+                        "Preparing results...",
+                    ]}
+                />}
 
             {!loading && advice.length > 0 && (
                 <>

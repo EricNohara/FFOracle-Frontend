@@ -174,9 +174,6 @@ export default function PlayerComparisonResultOverlay({
         fetchData();
     }, [isOpen, targetId, compareId, position, leagueId]);
 
-    // -------------------------
-    // NOW you can early-return
-    // -------------------------
     if (!isOpen) return null;
     if (!targetPlayer || !comparePlayer) return null;
 
@@ -184,7 +181,18 @@ export default function PlayerComparisonResultOverlay({
         return (
             <Overlay isOpen={isOpen} onClose={onClose}>
                 <Wrapper>
-                    <LoadingMessage message="Analyzing players..." />
+                    <LoadingMessage
+                        intervalMs={1000}
+                        messages={[
+                            "Gathering player data...",
+                            "Fetching league settings...",
+                            "Analyzing betting odds...",
+                            "Comparing opponent stats...",
+                            "Analyzing game environment...",
+                            "Accounting for historical performances...",
+                            "Finalizing recommendations...",
+                        ]}
+                    />
                 </Wrapper>
             </Overlay>
         );
