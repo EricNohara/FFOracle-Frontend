@@ -1,7 +1,7 @@
 "use client";
 
 import AppNavWrapper from "../../components/AppNavWrapper";
-import { PrimaryColorButton } from "../../components/Buttons";
+import { PrimaryColorButton, SecondaryColorButton } from "../../components/Buttons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useUserData } from "@/app/context/UserDataProvider";
@@ -91,7 +91,7 @@ export default function DashboardPage() {
     const leagueId = searchParams.get("leagueId");
     const regenerate = searchParams.get("regenerate") === "true";
 
-    const { userData } = useUserData();
+    const { userData, refreshUserData } = useUserData();
     const adviceCalledRef = useRef(false);
 
     const [advice, setAdvice] = useState<IAiAdviceResponse[]>([]);
@@ -152,8 +152,6 @@ export default function DashboardPage() {
         generateAdvice();
     }, [leagueId, userData, regenerate]);
 
-    const button = <PrimaryColorButton onClick={() => router.push("/dashboard")}>Back</PrimaryColorButton>;
-
     // Step 1: Collect picked playerIds
     const pickedPlayerIds = new Set(advice.filter(a => a.picked).map(a => a.playerId));
 
@@ -205,8 +203,38 @@ export default function DashboardPage() {
         }
     };
 
+    const handleSaveRosterChanges = async () => {
+        try {
+            await Promise.all(
+                advice.map((a) =>
+                    authFetch(
+                        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/pickedStatus`,
+                        {
+                            method: "PUT",
+                            body: JSON.stringify({
+                                league_id: leagueId,
+                                member_id: a.playerId,
+                                picked: a.picked,
+                                is_defense: a.position === "DEF",
+                            }),
+                        }
+                    )
+                )
+            );
+
+            alert("Updated roster with AI advice!");
+            refreshUserData();
+        } catch (error) {
+            console.error(error);
+            alert("Some updates failed.");
+        }
+    }
+
+    const saveRosterChangesButton = <PrimaryColorButton onClick={handleSaveRosterChanges}>Save Roster Changes</PrimaryColorButton>;
+    const backButton = <SecondaryColorButton onClick={() => router.push("/dashboard")}>Back</SecondaryColorButton>;
+
     return (
-        <AppNavWrapper title="AI ROSTER RECOMMENDATIONS" button1={button}>
+        <AppNavWrapper title="AI ROSTER RECOMMENDATIONS" button1={saveRosterChangesButton} button2={backButton}>
             {loading && <LoadingMessage message="Loading AI roster recommendations..." />}
 
             {!loading && advice.length > 0 && (

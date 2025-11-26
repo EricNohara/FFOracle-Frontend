@@ -67,7 +67,7 @@ export default function DashboardPage() {
         const userId = userData?.userInfo.id;
         const playerIds = league.players.map(p => p.player.id);
 
-        // check cache
+        // 1. CHECK CACHE FIRST — SHOW MODAL
         const cached = getCachedAdvice(userId ?? "", league.leagueId, playerIds);
 
         if (cached) {
@@ -75,7 +75,7 @@ export default function DashboardPage() {
             return;
         }
 
-        // otherwise must confirm token spend
+        // 2. NO CACHE — MUST CONFIRM TOKEN SPEND
         if (tokensRemaining <= 0) {
             alert(`User ${name} has ${tokensRemaining} tokens remaining. Purchase more tokens.`);
             return;
@@ -89,9 +89,9 @@ export default function DashboardPage() {
 
         if (!confirmSpend) return;
 
-        router.push(`/dashboard/advice?leagueId=${league.leagueId}`);
+        // 3. NAVIGATE TO GENERATE ADVICE
+        router.push(`/dashboard/advice?leagueId=${league.leagueId}&regenerate=true`);
     };
-
 
     const editButton = <PrimaryColorButton onClick={() => router.push(`/stats?leagueId=${selectedLeagueData?.leagueId}`)}>Edit Roster</PrimaryColorButton>;
     const adviceButton = <PrimaryColorButton onClick={handleClickAdvice}>Generate Advice</PrimaryColorButton>;
@@ -286,7 +286,6 @@ export default function DashboardPage() {
                 onSelect={async (choice) => {
                     // First bench the chosen player
                     await performPickedSwap(choice);
-
                     // Then start the new target
                     await performPickedSwap(swapTarget!);
                 }}

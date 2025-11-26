@@ -2,7 +2,13 @@ import { IAiAdviceResponse } from "@/app/interfaces/IAiAdviceResponse";
 import { ICachedAdvice } from "@/app/interfaces/ICachedAdvice";
 
 const CACHE_KEY = "aiAdviceCache";
-const CACHE_TTL = 1000 * 60 * 60 * 24 * 7; // 7 days in milliseconds
+const CACHE_TTL = 1000 * 60 * 60 * 24 * 7; // 7 days
+
+// Helper: normalize playerIds for reliable comparison
+function normalizeIds(ids: string[]): string[] {
+  return Array.from(new Set(ids)) // remove duplicates
+    .sort(); // order-independent
+}
 
 export function getCachedAdvice(
   userId: string,
@@ -12,7 +18,9 @@ export function getCachedAdvice(
   const rawCache: ICachedAdvice[] = JSON.parse(
     localStorage.getItem(CACHE_KEY) || "[]"
   );
+
   const now = Date.now();
+  const normalizedIncoming = normalizeIds(playerIds);
 
   // Filter out expired entries
   const validCache = rawCache.filter((c) => now - c.timestamp <= CACHE_TTL);
@@ -20,13 +28,18 @@ export function getCachedAdvice(
   // Save back only valid entries
   localStorage.setItem(CACHE_KEY, JSON.stringify(validCache));
 
-  // Try to find a match
-  const match = validCache.find(
-    (c) =>
-      c.userId === userId &&
-      c.leagueId === leagueId &&
-      JSON.stringify(c.playerIds) === JSON.stringify(playerIds)
-  );
+  // Find match: same user, same league,
+  // AND same normalized unique sorted roster players
+  const match = validCache.find((c) => {
+    if (c.userId !== userId || c.leagueId !== leagueId) return false;
+
+    const normalizedStored = normalizeIds(c.playerIds);
+
+    return (
+      normalizedStored.length === normalizedIncoming.length &&
+      normalizedStored.every((id, idx) => id === normalizedIncoming[idx])
+    );
+  });
 
   return match ? match.advice : null;
 }
@@ -40,10 +53,21 @@ export function setCachedAdvice(
   const cache: ICachedAdvice[] = JSON.parse(
     localStorage.getItem(CACHE_KEY) || "[]"
   );
-  // remove old entry for this user+league
+
+  const normalizedIds = normalizeIds(playerIds);
+
+  // remove old entry for same user + league
   const filtered = cache.filter(
     (c) => !(c.userId === userId && c.leagueId === leagueId)
   );
-  filtered.push({ userId, leagueId, playerIds, advice, timestamp: Date.now() });
+
+  filtered.push({
+    userId,
+    leagueId,
+    playerIds: normalizedIds,
+    advice,
+    timestamp: Date.now(),
+  });
+
   localStorage.setItem(CACHE_KEY, JSON.stringify(filtered));
 }
