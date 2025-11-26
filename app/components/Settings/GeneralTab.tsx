@@ -25,6 +25,7 @@ interface IGeneralTabProps {
   phoneNumber: string;
   fullname: string;
   allowEmails: boolean;
+  tokensLeft: number;
   onEmailChange: (value: string) => void;
   onPhoneNumberChange: (value: string) => void;
   onFullnameChange: (value: string) => void;
@@ -36,6 +37,7 @@ export default function GeneralTab({
   phoneNumber,
   fullname,
   allowEmails,
+  tokensLeft,
   onEmailChange,
   onPhoneNumberChange,
   onFullnameChange,
@@ -89,7 +91,7 @@ export default function GeneralTab({
         <TextInput
           label="Tokens Left"
           name="tokensLeft"
-          value="0"
+          value={String(tokensLeft)}
           placeholder="0"
           onChange={() => { }}
           compact={true}
