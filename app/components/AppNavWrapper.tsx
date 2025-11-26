@@ -11,6 +11,7 @@ interface IAppNavWrapperProps {
   title: string;
   button1?: ReactNode;
   button2?: ReactNode;
+  button3?: ReactNode;
   children: ReactNode;
 }
 
@@ -76,7 +77,7 @@ const ContentWrapper = styled.div`
   scrollbar-color: var(--color-primary) var(--color-base-dark-3);
 `;
 
-export default function AppNavWrapper({ title, button1, button2, children }: IAppNavWrapperProps) {
+export default function AppNavWrapper({ title, button1, button2, button3, children }: IAppNavWrapperProps) {
   const { isLoading } = useUserData();
 
   if (isLoading) return <div style={{
@@ -102,6 +103,7 @@ export default function AppNavWrapper({ title, button1, button2, children }: IAp
           <Title className={titleFont.className}>{title}</Title>
           {(button1 || button2) && (
             <ButtonsWrapper>
+              {button3}
               {button2}
               {button1}
             </ButtonsWrapper>

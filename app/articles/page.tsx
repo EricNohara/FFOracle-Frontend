@@ -208,10 +208,25 @@ export default function ArticlesPage() {
         }
     }
 
+    if (!selectedLeagueData?.players?.length) {
+        return (
+            <AppNavWrapper title="ARTICLES" button1={button} button2={leagueDropdown}>
+                <p style={{ color: "var(--color-txt-3)" }}>This league has no players yet. Add players to view articles.</p>
+            </AppNavWrapper>
+        );
+    }
+
     return (
         <AppNavWrapper title="ARTICLES" button1={button} button2={leagueDropdown}>
             {isLoading ? (
-                <LoadingMessage message="Loading articles..." />
+                <LoadingMessage
+                    messages={[
+                        "Fetching from ESPN...",
+                        "Validating sources...",
+                        "Loading articles..."
+                    ]}
+                    intervalMs={500}
+                />
             ) : (
                 <>
                     <SearchBar
