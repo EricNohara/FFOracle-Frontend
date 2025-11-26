@@ -16,6 +16,7 @@ import { authFetch } from "@/lib/supabase/authFetch";
 import { getCachedAdvice } from "@/lib/utils/cachedAdvice";
 import ConfirmAdviceModal from "../components/Overlay/ConfirmAdviceModal";
 import ConfirmSwapModal from "../components/Overlay/ConfirmSwapModal";
+import { canDefenseStartAtPosition, canPlayerStartAtPosition } from "@/lib/utils/rosterSlots";
 
 const NoDataMessage = styled.p`
     font-style: italic;
@@ -171,6 +172,14 @@ export default function DashboardPage() {
 
     const handleConfirmStartSit = async () => {
         if (!swapTarget || !selectedLeagueData) return;
+
+        if (swapTarget.picked === false) {
+            if ("player" in swapTarget) {
+                alert(canPlayerStartAtPosition(selectedLeagueData, swapTarget.player.position));
+            } else {
+                alert(canDefenseStartAtPosition(selectedLeagueData));
+            }
+        }
 
         try {
             const res = await authFetch(
