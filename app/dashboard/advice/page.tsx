@@ -5,7 +5,6 @@ import { PrimaryColorButton } from "../../components/Buttons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useUserData } from "@/app/context/UserDataProvider";
-import { createClient } from "@/lib/supabase/client";
 import { IAiAdviceResponse } from "@/app/interfaces/IAiAdviceResponse";
 import LoadingMessage from "@/app/components/LoadingMessage";
 import PlayerList from "@/app/components/PlayerList";
@@ -21,7 +20,7 @@ const StartSitLabel = styled.h2`
     font-size: 1.5rem;
     font-weight: bold;
     color: white;
-    margin: 1rem;
+    margin: 0.5rem 0;
 `;
 
 const OverlayContentWrapper = styled.div`

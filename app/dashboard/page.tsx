@@ -14,7 +14,8 @@ import DefenseStatsOverlay from "../components/Overlay/DefenseStatsOverlay";
 import GenericDropdown from "../components/GenericDropdown";
 import { authFetch } from "@/lib/supabase/authFetch";
 import { getCachedAdvice } from "@/lib/utils/cachedAdvice";
-import ConfirmAdviceModal from "../components/ConfirmAdviceModal";
+import ConfirmAdviceModal from "../components/Overlay/ConfirmAdviceModal";
+import ConfirmSwapModal from "../components/Overlay/ConfirmSwapModal";
 
 const NoDataMessage = styled.p`
     font-style: italic;
@@ -29,7 +30,8 @@ export default function DashboardPage() {
     const [selectedPlayer, setSelectedPlayer] = useState<IPlayerData | null>(null);
     const [selectedDefense, setSelectedDefense] = useState<ILeagueDefense | null>(null);
     const [showAdviceModal, setShowAdviceModal] = useState(false);
-    const [cachedAdviceData, setCachedAdviceData] = useState<any>(null);
+    const [showSwapModal, setShowSwapModal] = useState(false);
+    const [swapTarget, setSwapTarget] = useState<IPlayerData | ILeagueDefense | null>(null);
 
     // Set default selected league on load (first one)
     useEffect(() => {
@@ -37,12 +39,6 @@ export default function DashboardPage() {
             setSelectedLeagueData(userData.leagues[0]);
         }
     }, [userData]);
-
-    const handleLeagueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const leagueId = e.target.value;
-        const league = userData?.leagues.find(l => l.leagueId === leagueId) ?? null;
-        setSelectedLeagueData(league);
-    };
 
     const handleUseCached = () => {
         setShowAdviceModal(false);
@@ -71,7 +67,6 @@ export default function DashboardPage() {
         const cached = getCachedAdvice(userId ?? "", league.leagueId, playerIds);
 
         if (cached) {
-            setCachedAdviceData(cached);
             setShowAdviceModal(true);
             return;
         }
@@ -169,6 +164,42 @@ export default function DashboardPage() {
         }
     }
 
+    const handleToggleStartSit = (playerOrDefense: IPlayerData | ILeagueDefense) => {
+        setSwapTarget(playerOrDefense);
+        setShowSwapModal(true);
+    };
+
+    const handleConfirmStartSit = async () => {
+        if (!swapTarget || !selectedLeagueData) return;
+
+        try {
+            const res = await authFetch(
+                `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/pickedStatus`,
+                {
+                    method: "PUT",
+                    body: JSON.stringify({
+                        league_id: selectedLeagueData.leagueId,
+                        member_id: "player" in swapTarget
+                            ? swapTarget.player.id        // player
+                            : swapTarget.team.id,         // defense
+                        picked: !swapTarget.picked,       // flip start/sit
+                        is_defense: !("player" in swapTarget)
+                    }),
+                }
+            );
+
+            if (!res.ok) throw new Error("Failed to update picked status");
+
+            // update UI after server updates
+            await refreshUserData();
+            setShowSwapModal(false);
+            setSwapTarget(null);
+        } catch (error) {
+            console.error("Error swapping start/sit:", error);
+            alert("Failed to update lineup.");
+        }
+    };
+
     return (
         <AppNavWrapper title="ROSTER DASHBOARD" button1={(selectedLeagueData?.players?.length ?? 0) > 0 ? adviceButton : editButton} button2={leagueDropdown}>
             {selectedLeagueData ?
@@ -179,6 +210,7 @@ export default function DashboardPage() {
                             onPlayerClick={onPlayerClick}
                             defenses={selectedLeagueData.defenses ?? []}
                             onDefenseClick={onDefenseClick}
+                            onToggleStartSit={handleToggleStartSit}
                         />
                     ) : <NoDataMessage>Your roster is empty. Click edit roster to add players to your roster for this league.</NoDataMessage>
                 : (
@@ -198,6 +230,12 @@ export default function DashboardPage() {
                 onClose={() => setShowAdviceModal(false)}
                 onUseCached={handleUseCached}
                 onRegenerate={handleRegenerate}
+            />
+            <ConfirmSwapModal
+                isOpen={showSwapModal}
+                target={swapTarget}
+                onClose={() => setShowSwapModal(false)}
+                onConfirm={handleConfirmStartSit}
             />
         </AppNavWrapper>
     )

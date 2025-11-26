@@ -1,9 +1,9 @@
 "use client";
 
 import styled from "styled-components";
-import Overlay from "./Overlay/Overlay";
-import { PrimaryColorButton, SecondaryColorButton } from "./Buttons";
-import { headerFont } from "../localFont";
+import Overlay from "../Overlay/Overlay";
+import { PrimaryColorButton, SecondaryColorButton } from "../Buttons";
+import { headerFont } from "../../localFont";
 
 const ModalWrapper = styled.div`
   background-color: var(--color-base-dark-3);
