@@ -108,6 +108,7 @@ export default function PlayerCompareOverlay({
         }
     }
 
+
     const filteredPlayers = NFLPlayers.filter(p =>
         p.player.id !== targetId &&
         p.player.name.toLowerCase().includes(search.toLowerCase())
