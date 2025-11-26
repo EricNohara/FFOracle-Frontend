@@ -2,7 +2,7 @@
 
 import AppNavWrapper from "../components/AppNavWrapper";
 import { useUserData } from "../context/UserDataProvider";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { ILeagueData, ILeagueDefense, IPlayerData } from "../interfaces/IUserData";
 import styled from "styled-components";
 import { usePlayersByPosition } from "../hooks/usePlayersByPosition";
@@ -52,6 +52,14 @@ const StickyHeader = styled.div`
 `;
 
 export default function StatsPage() {
+  return (
+    <Suspense>
+      <StatsPageContent />
+    </Suspense>
+  );
+}
+
+function StatsPageContent() {
   const { userData, refreshUserData } = useUserData();
   const [selectedLeagueData, setSelectedLeagueData] = useState<ILeagueData | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<string>("QB");

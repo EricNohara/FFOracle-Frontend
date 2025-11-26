@@ -3,7 +3,7 @@
 import AppNavWrapper from "../../components/AppNavWrapper";
 import { PrimaryColorButton, SecondaryColorButton } from "../../components/Buttons";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { useUserData } from "@/app/context/UserDataProvider";
 import { IAiAdviceResponse } from "@/app/interfaces/IAiAdviceResponse";
 import LoadingMessage from "@/app/components/LoadingMessage";
@@ -21,7 +21,15 @@ const StartSitLabel = styled.h2`
     margin: 0.5rem 0;
 `;
 
-export default function DashboardPage() {
+export default function AdvicePage() {
+    return (
+        <Suspense>
+            <AdvicePageContent />
+        </Suspense>
+    );
+}
+
+function AdvicePageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const leagueId = searchParams.get("leagueId");
