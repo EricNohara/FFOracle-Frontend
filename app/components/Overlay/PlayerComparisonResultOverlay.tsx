@@ -84,9 +84,9 @@ const PlayerName = styled.h2`
   margin: 0;
 `;
 
-const StatusBadge = styled.span<{ picked: boolean }>`
-  background-color: ${({ picked }) =>
-        picked ? "var(--color-green)" : "var(--color-red)"};
+const StatusBadge = styled.span<{ $picked: boolean }>`
+  background-color: ${({ $picked }) =>
+        $picked ? "var(--color-green)" : "var(--color-red)"};
   color: white;
   padding: 0.5rem 1rem;
   border-radius: var(--global-border-radius);
@@ -227,7 +227,7 @@ export default function PlayerComparisonResultOverlay({
                                     alt={name}
                                 />
                                 <PlayerName>{name}</PlayerName>
-                                <StatusBadge picked={rec.picked}>
+                                <StatusBadge $picked={rec.picked}>
                                     {rec.picked ? "START" : "SIT"}
                                 </StatusBadge>
                             </TopRow>

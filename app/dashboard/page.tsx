@@ -78,15 +78,15 @@ export default function DashboardPage() {
         }
 
         // 2. NO CACHE — MUST CONFIRM TOKEN SPEND
-        if (tokensRemaining <= 0) {
+        if (tokensRemaining <= 10) {
             alert(`User ${name} has ${tokensRemaining} tokens remaining. Purchase more tokens.`);
             return;
         }
 
         const confirmSpend = window.confirm(
-            `Generate new AI advice for ${league.leagueName}? This costs 1 token.\n\n` +
+            `Generate new AI advice for ${league.leagueName} for 10 tokens?\n\n` +
             `You currently have ${tokensRemaining} tokens.\n` +
-            `You will have ${tokensRemaining - 1} remaining.`
+            `You will have ${tokensRemaining - 10} remaining.`
         );
 
         if (!confirmSpend) return;

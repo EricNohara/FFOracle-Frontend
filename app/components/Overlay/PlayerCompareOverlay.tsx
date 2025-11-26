@@ -6,6 +6,7 @@ import SearchBar from "../SearchBar";
 import PlayerList from "../PlayerList";
 import { useState, useEffect } from "react";
 import LoadingMessage from "../LoadingMessage";
+import { useUserData } from "@/app/context/UserDataProvider";
 
 import {
     IPlayerData,
@@ -60,8 +61,7 @@ export default function PlayerCompareOverlay({
     targetPlayer,
     onSelect,
 }: PlayerCompareOverlayProps) {
-    if (!isOpen) return null;
-
+    const { userData } = useUserData();
     const isDefense = "team" in targetPlayer;
     const position = isDefense ? "DEF" : targetPlayer.player.position;
 
@@ -128,55 +128,54 @@ export default function PlayerCompareOverlay({
 
     return (
         <Overlay isOpen={isOpen} onClose={onClose}>
-            <Wrapper>
-                <StickyHeader>
-                    <Title>Select a Player to Compare</Title>
-                    <div
-                        style={{
-                            display: "flex",
-                            width: "100%",
-                            alignItems: "center",
-                            gap: "1rem",
-                        }}
-                    >
-                        <div style={{ flex: 1 }}>
-                            <SearchBar
-                                value={search}
-                                onChange={setSearch}
-                                placeholder="Search players..."
-                                sticky={false}
-                                color="var(--color-base-dark-3)"
-                            />
+            {isOpen && (
+                <Wrapper>
+                    <StickyHeader>
+                        <Title>Select a Player to Compare</Title>
+
+                        <div style={{ display: "flex", width: "100%", alignItems: "center", gap: "1rem" }}>
+                            <div style={{ flex: 1 }}>
+                                <SearchBar
+                                    value={search}
+                                    onChange={setSearch}
+                                    placeholder="Search players..."
+                                    sticky={false}
+                                    color="var(--color-base-dark-3)"
+                                />
+                            </div>
+
+                            <PrimaryColorButton
+                                disabled={!selected}
+                                onClick={() => {
+                                    const tokensRemaining = userData?.userInfo.tokens_left ?? 0;
+                                    const confirmSpend = window.confirm(
+                                        `Compare players for 1 token?\n\nYou currently have ${tokensRemaining} tokens.\nYou will have ${tokensRemaining - 1} remaining.`
+                                    );
+                                    if (!confirmSpend) return;
+                                    return selected && onSelect(selected);
+                                }}
+                            >
+                                Continue
+                            </PrimaryColorButton>
                         </div>
+                    </StickyHeader>
 
-                        <PrimaryColorButton
-                            disabled={!selected}
-                            onClick={() => selected && onSelect(selected)}
-                        >
-                            Continue
-                        </PrimaryColorButton>
-                    </div>
-                </StickyHeader>
-
-                <Content>
-                    <PlayerList
-                        players={position === "DEF" ? [] : (list as IPlayerData[])}
-                        defenses={position !== "DEF" ? [] : (list as ILeagueDefense[])}
-                        displayStartSit={false}
-                        selectable
-                        onPlayerClick={(p) =>
-                            setSelected(prev =>
-                                isPlayerType(prev) && prev.player.id === p.player.id ? null : p
-                            )
-                        }
-                        onDefenseClick={(d) =>
-                            setSelected(prev =>
-                                isDefenseType(prev) && prev.team.id === d.team.id ? null : d
-                            )
-                        }
-                    />
-                </Content>
-            </Wrapper>
+                    <Content>
+                        <PlayerList
+                            players={position === "DEF" ? [] : (list as IPlayerData[])}
+                            defenses={position !== "DEF" ? [] : (list as ILeagueDefense[])}
+                            displayStartSit={false}
+                            selectable
+                            onPlayerClick={(p) =>
+                                setSelected(prev => (prev && "player" in prev && prev.player.id === p.player.id ? null : p))
+                            }
+                            onDefenseClick={(d) =>
+                                setSelected(prev => (prev && "team" in prev && prev.team.id === d.team.id ? null : d))
+                            }
+                        />
+                    </Content>
+                </Wrapper>
+            )}
         </Overlay>
     );
 }

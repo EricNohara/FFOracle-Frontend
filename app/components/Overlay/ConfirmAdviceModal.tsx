@@ -63,7 +63,7 @@ export default function ConfirmAdviceModal({
                 <Message>
                     You already generated AI roster advice for your current roster this week.
                     Would you like to <strong>view your previous advice for free</strong>,
-                    or <strong>regenerate new advice for 1 token</strong>?
+                    or <strong>regenerate new advice for 10 tokens</strong>?
                 </Message>
 
                 <ButtonRow>
@@ -72,7 +72,7 @@ export default function ConfirmAdviceModal({
                     </PrimaryColorButton>
 
                     <SecondaryColorButton onClick={onRegenerate}>
-                        Regenerate Advice (1 Token)
+                        Regenerate Advice (10 Tokens)
                     </SecondaryColorButton>
 
                     <button
