@@ -226,14 +226,16 @@ function AdvicePageContent() {
             {!loading && advice.length === 0 && <p>No advice available yet.</p>}
 
             {/* Overlay */}
-            <AdviceReasoningOverlay
-                isOpen={showOverlay}
-                onClose={() => setShowOverlay(false)}
-                advice={selectedPlayer!}
-                playerData={selectedPlayerData}
-                defenseData={selectedDefenseData}
-                leagueId={leagueId ?? ""}
-            />
+            {showOverlay && selectedPlayer && (
+                <AdviceReasoningOverlay
+                    isOpen={showOverlay}
+                    onClose={() => setShowOverlay(false)}
+                    advice={selectedPlayer}
+                    playerData={selectedPlayerData}
+                    defenseData={selectedDefenseData}
+                    leagueId={leagueId ?? ""}
+                />
+            )}
         </AppNavWrapper >
     );
 }
