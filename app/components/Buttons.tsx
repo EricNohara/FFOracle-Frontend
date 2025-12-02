@@ -16,10 +16,16 @@ const ButtonBase = styled.button<{ $isFullWidth?: boolean }>`
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    
+
     &:hover {
       background-color: inherit;
     }
+  }
+
+  @media (max-width: 768px) {
+    width: ${({ $isFullWidth }) => ($isFullWidth ? "100%" : "100%")};
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
   }
 `;
 

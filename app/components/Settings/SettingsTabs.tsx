@@ -13,6 +13,11 @@ const TabsContainer = styled.div`
   gap: 2rem;
   border-bottom: 2px solid var(--color-base-dark-3);
   margin-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    gap: 1rem;
+    overflow-x: auto;
+  }
 `;
 
 const Tab = styled.button<{ $isActive: boolean }>`
@@ -40,6 +45,12 @@ const Tab = styled.button<{ $isActive: boolean }>`
     background-color: var(--color-primary);
     opacity: ${({ $isActive }) => ($isActive ? 1 : 0)};
     transition: opacity 0.2s ease;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1.2rem;
+    padding: 0.75rem 0;
+    white-space: nowrap;
   }
 `;
 

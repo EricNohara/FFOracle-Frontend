@@ -20,12 +20,23 @@ const OverlayHeader = styled.div`
   border-radius: var(--global-border-radius) var(--global-border-radius) 0 0;
   gap: 2rem;
   flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 1.5rem 0.5rem 0.5rem;
+    gap: 1rem;
+  }
 `;
 
 const PlayerImage = styled.img`
   height: 250px;
   padding: 1rem;
   object-fit: cover;
+
+  @media (max-width: 768px) {
+    height: 150px;
+    padding: 0.5rem;
+  }
 `;
 
 const OpponentImage = styled.img`
@@ -71,6 +82,10 @@ const OverlayBody = styled.div`
     font-size: 1.15rem;
     font-weight: bold;
     margin-bottom: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
   }
 `;
 

@@ -36,6 +36,11 @@ const OverlayContent = styled.div<{ $height: number }>`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+
+  @media (max-width: 768px) {
+    width: 95%;
+    height: ${({ $height }) => `${Math.min($height + 10, 95)}%`};
+  }
 `;
 
 const CloseButton = styled.button`

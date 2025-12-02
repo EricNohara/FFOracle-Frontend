@@ -43,11 +43,21 @@ const Header = styled.div`
   border-radius: var(--global-border-radius) var(--global-border-radius) 0 0;
   gap: 2rem;
   flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 1.5rem 0.5rem 0.5rem;
+    gap: 1rem;
+  }
 `;
 
 const PlayerImage = styled.img`
   height: 250px;
   object-fit: cover;
+
+  @media (max-width: 768px) {
+    height: 150px;
+  }
 `;
 
 const NameStack = styled.div`
@@ -79,6 +89,10 @@ const Body = styled.div`
     font-size: 1.15rem;
     font-weight: bold;
     margin-bottom: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
   }
 `;
 

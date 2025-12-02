@@ -22,6 +22,11 @@ const Select = styled.select`
     background-color: var(--color-base-dark-3);
     color: white;
   }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    font-size: 0.9rem;
+  }
 `;
 
 interface GenericDropdownProps<T> {

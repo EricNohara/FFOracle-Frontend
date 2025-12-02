@@ -40,6 +40,13 @@ const PlayerCard = styled.div<{ $selected?: boolean }>`
   &:hover {
     cursor: pointer;
   }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+  }
 `;
 
 const PlayerSimpleData = styled.div`
@@ -67,13 +74,23 @@ const DefenseImage = styled.img`
 
 const PlayerInfo = styled.div`
   display: flex;
-    gap: 2rem;
-  `;
+  gap: 2rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+`;
 
 const EndPlayerCardContainer = styled.div`
   display: flex;
-    gap: 2rem;
-    justify-self: end;
+  gap: 2rem;
+  justify-self: end;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: space-between;
+  }
 `;
 
 const PlayerName = styled.span`

@@ -19,6 +19,10 @@ const Wrapper = styled.div`
   display: flex;
   width: 100vw;
   height: 100vh;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 `;
 
 const RightPanel = styled.div`
@@ -29,6 +33,11 @@ const RightPanel = styled.div`
   padding-bottom: 2rem;
   background-color: var(--color-base-dark-5);
   color: white;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+    padding-bottom: 1rem;
+  }
 `;
 
 const PageHeader = styled.div`
@@ -36,17 +45,33 @@ const PageHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   margin-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
 `;
 
 const Title = styled.h1`
   font-size: 2rem;
   font-weight: bold;
   color: white;
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
 `;
 
 const ButtonsWrapper = styled.div`
   display: flex;
   gap: 2rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
 `;
 
 const ContentWrapper = styled.div`
