@@ -27,12 +27,15 @@ const OverlayWrapper = styled.div<{ $isOpen: boolean }>`
 `;
 
 const OverlayContent = styled.div<{ $height: number }>`
-position: relative;
+  position: relative;
   background-color: var(--color-base-dark-3);
   border-radius: var(--global-border-radius);
   color: white;
   width: 50%;
   height: ${({ $height }) => `${$height}%`};
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 `;
 
 const CloseButton = styled.button`

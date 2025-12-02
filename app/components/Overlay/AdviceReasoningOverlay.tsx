@@ -27,6 +27,8 @@ const Wrapper = styled.div`
   background-color: var(--color-base-dark-3);
   border-radius: var(--global-border-radius);
   color: white;
+  height: 100%;
+  overflow: hidden;
 `;
 
 const Header = styled.div`
@@ -40,6 +42,7 @@ const Header = styled.div`
   padding-bottom: 0;
   border-radius: var(--global-border-radius) var(--global-border-radius) 0 0;
   gap: 2rem;
+  flex-shrink: 0;
 `;
 
 const PlayerImage = styled.img`
@@ -69,6 +72,8 @@ const Body = styled.div`
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  overflow-y: auto;
+  flex: 1;
 
   h3 {
     font-size: 1.15rem;

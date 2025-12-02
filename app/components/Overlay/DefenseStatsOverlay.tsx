@@ -19,6 +19,7 @@ const OverlayHeader = styled.div`
   padding-bottom: 0;
   border-radius: var(--global-border-radius) var(--global-border-radius) 0 0;
   gap: 2rem;
+  flex-shrink: 0;
 `;
 
 const PlayerImage = styled.img`
@@ -59,10 +60,12 @@ const PositionTagWrapper = styled.div`
 `;
 
 const OverlayBody = styled.div`
-    padding: 2rem;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  overflow-y: auto;
+  flex: 1;
 
   h3 {
     font-size: 1.15rem;
