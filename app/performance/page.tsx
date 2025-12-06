@@ -25,17 +25,20 @@ const TablePane = styled.div`
   flex-direction: column;
 `;
 
+type BasicPlayerInfo = {
+    id: string;
+    name: string;
+    position: string;
+    headshot_url: string | null;
+};
+
 export default function PerformancePage() {
     const { userData } = useUserData();
     const [selectedLeagueData, setSelectedLeagueData] = useState<ILeagueData | null>(null);
     const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
     const [performance, setPerformance] = useState<IPerformanceResponse | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [playerInfoMap, setPlayerInfoMap] = useState<Record<string, {
-        name: string;
-        headshotUrl: string | null;
-        position: string;
-    }>>({});
+    const [playerInfoMap, setPlayerInfoMap] = useState<Record<string, BasicPlayerInfo>>({});
 
     const players = useMemo(
         () => selectedLeagueData?.players ?? [],
@@ -106,14 +109,16 @@ export default function PerformancePage() {
                 if (playerIds.length > 0) {
                     const info = await fetchBasicPlayerInfo(playerIds);
 
-                    const map: Record<string, any> = {};
-                    info.forEach((p: any) => {
+                    const map: Record<string, BasicPlayerInfo> = {};
+                    info.forEach((p: BasicPlayerInfo) => {
                         map[p.id] = {
+                            id: p.id,
                             name: p.name,
-                            headshotUrl: p.headshot_url ?? null,
+                            headshot_url: p.headshot_url ?? null,
                             position: p.position ?? "UNK"
                         };
                     });
+
 
 
                     setPlayerInfoMap(map);
@@ -190,7 +195,7 @@ export default function PerformancePage() {
                     ...p,
                     playerName: info?.name ?? p.playerId,
                     position: info?.position ?? "UNK", // optional if needed
-                    headshotUrl: info?.headshotUrl ?? null,
+                    headshotUrl: info?.headshot_url ?? null,
                 };
             })
             .sort((a, b) => {

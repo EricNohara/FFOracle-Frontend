@@ -13,7 +13,7 @@ export default function DashboardTour({ userId, hasLeagues }: { userId?: string,
         startedRef.current = true;
 
         const stageKey = `onboarding-stage-${userId}`;
-        let stage = localStorage.getItem(stageKey) || "start";
+        const stage = localStorage.getItem(stageKey) || "start";
 
         const tour = new Shepherd.Tour({
             useModalOverlay: true,
@@ -24,6 +24,7 @@ export default function DashboardTour({ userId, hasLeagues }: { userId?: string,
             },
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any)._shepherdTour = tour;
 
         if (stage === "start" && !hasLeagues) {

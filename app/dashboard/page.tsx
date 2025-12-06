@@ -120,6 +120,7 @@ export default function DashboardPage() {
             onClick={() => {
                 const key = `onboarding-stage-${userData?.userInfo.id}`;
                 localStorage.setItem(key, "after-create");
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const t = (window as any)._shepherdTour;
                 if (t) t.cancel(); // Stop the first step
                 setShowAddLeagueModal(true);
