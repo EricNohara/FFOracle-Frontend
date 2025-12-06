@@ -62,6 +62,7 @@ const Input = styled.input<{ $compact?: boolean }>`
 `;
 
 interface ITextInputProps {
+  id?: string;
   label: string;
   name: string;
   value: string;
@@ -76,6 +77,7 @@ interface ITextInputProps {
 }
 
 export default function TextInput({
+  id = "",
   label,
   name,
   value,
@@ -89,7 +91,7 @@ export default function TextInput({
   disabled = false
 }: ITextInputProps) {
   return (
-    <InputWrapper>
+    <InputWrapper id={id}>
       <Label className={headerFont.className} htmlFor={name}>{!required ? label : `${label} *`}</Label>
       <Input
         id={name}

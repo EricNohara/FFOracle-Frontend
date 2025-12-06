@@ -58,6 +58,7 @@ interface INavItem {
     icon: LucideIcon;
     label: string;
     route: string;
+    id: string;
 }
 
 export default function AppNav() {
@@ -71,11 +72,11 @@ export default function AppNav() {
     }
 
     const navListTop: INavItem[] = [
-        { icon: LayoutDashboard, label: "Dashboard", route: "/dashboard" },
-        { icon: BookText, label: "Articles", route: "/articles" },
-        { icon: ChartColumnBig, label: "Stats", route: "/stats" },
-        { icon: CircleGauge, label: "Performance", route: "/performance" },
-        { icon: Settings, label: "Settings", route: "/settings" },
+        { icon: LayoutDashboard, label: "Dashboard", route: "/dashboard", id: "step-dashboard" },
+        { icon: ChartColumnBig, label: "Stats", route: "/stats", id: "step-stats" },
+        { icon: CircleGauge, label: "Performance", route: "/performance", id: "step-performance" },
+        { icon: BookText, label: "Articles", route: "/articles", id: "step-articles" },
+        { icon: Settings, label: "Settings", route: "/settings", id: "step-settings" },
     ]
 
     return (
@@ -83,8 +84,8 @@ export default function AppNav() {
             <TopContainer>
                 <TitleLogo />
                 <NavList>
-                    {navListTop.map(({ icon: Icon, label, route }) => (
-                        <NavItem key={label} onClick={() => router.push(route)} $isActive={pathname === route}>
+                    {navListTop.map(({ icon: Icon, label, route, id }) => (
+                        <NavItem id={id} key={label} onClick={() => router.push(route)} $isActive={pathname === route}>
                             <Icon />
                             {label}
                         </NavItem>

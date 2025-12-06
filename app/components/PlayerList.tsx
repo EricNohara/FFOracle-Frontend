@@ -8,6 +8,7 @@ import { AddButton } from "./Buttons";
 import { useState } from "react";
 
 interface IPlayerListProps {
+  id?: string;
   players: IPlayerData[];
   defenses?: ILeagueDefense[];
   displayStartSit?: boolean;
@@ -126,6 +127,7 @@ export const PlayerPositionTag = styled.div<IPlayerPositionTagProps>`
 const POSITION_ORDER = ["QB", "RB", "WR", "TE", "K", "DEF"];
 
 export default function PlayerList({
+  id = "",
   players,
   defenses = [],
   displayStartSit = true,
@@ -154,7 +156,7 @@ export default function PlayerList({
     });
 
   return (
-    <ListWrapper>
+    <ListWrapper id={id}>
       {sortedPlayers.map((playerData) => (
         playerData && playerData.player && playerData.player.name && playerData.player.headshot_url && playerData.player.position &&
         < PlayerCard
