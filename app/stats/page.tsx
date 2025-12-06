@@ -177,7 +177,7 @@ function StatsPageContent() {
     setSelectedPlayer(player);
     setSelectedDefense(null);
 
-    if (selectedLeagueData?.players.some((p) => p.player.id === player.player.id)) {
+    if (selectedLeagueData?.players?.some((p) => p.player.id === player.player.id)) {
       alert("Player is already on your roster for this league");
       return;
     } else if (isSpaceRemainingForPlayerAtPosition(selectedLeagueData, selectedPosition)) {

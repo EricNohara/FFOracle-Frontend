@@ -36,6 +36,9 @@ export function isSpaceRemainingForPlayerAtPosition(
 ): boolean {
   if (!league || !league.rosterSettings) return false;
 
+  // league without players can ALWAYS add the player as long as the roster settings allows for at least one
+  if (!league.players) return getRosterSlotsByPosition(league, position) > 0;
+
   const posSlots = getRosterSlotsByPosition(league, position);
   const flexSlots = getRosterSlotsByPosition(league, "FLEX");
   const benchSlots = getRosterSlotsByPosition(league, "BENCH");
