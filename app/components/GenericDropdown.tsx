@@ -25,6 +25,7 @@ const Select = styled.select`
 `;
 
 interface GenericDropdownProps<T> {
+    id?: string;
     items: T[];
     selected: T | null;
     getKey: (item: T) => string;
@@ -33,6 +34,7 @@ interface GenericDropdownProps<T> {
 }
 
 export default function GenericDropdown<T>({
+    id = "",
     items,
     selected,
     getKey,
@@ -41,6 +43,7 @@ export default function GenericDropdown<T>({
 }: GenericDropdownProps<T>) {
     return (
         <Select
+            id={id}
             value={selected ? getKey(selected) : ""}
             onChange={(e) => {
                 const item = items.find((i) => getKey(i) === e.target.value);

@@ -39,22 +39,15 @@ const SectionTitle = styled.h3`
 `;
 
 const TwoColumn = styled.div`
-    width: 100%;
-    display: flex;
-    gap: 2rem;
-    `;
+  width: 100%;
+  display: flex;
+  gap: 2rem;
+`;
 
 export default function AddLeagueOverlay({ isOpen, onClose, onCreate }: Props) {
     const [leagueName, setLeagueName] = useState("");
     const [rosterSettings, setRosterSettings] = useState({
-        qb: 1,
-        rb: 2,
-        wr: 2,
-        te: 1,
-        flex: 1,
-        k: 1,
-        def: 1,
-        bench: 5,
+        qb: 1, rb: 2, wr: 2, te: 1, flex: 1, k: 1, def: 1, bench: 5,
     });
 
     const [scoring, setScoring] = useState({
@@ -62,12 +55,14 @@ export default function AddLeagueOverlay({ isOpen, onClose, onCreate }: Props) {
         "RUSHING YD POINTS": 0.1,
         "RECEIVING YD POINTS": 0.1,
         "RECEPTION POINTS": 1,
-        "TOUCHDOWN POINTS": 6
+        "TOUCHDOWN POINTS": 6,
     });
 
     if (!isOpen) return null;
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault(); // prevent full page reload
+
         await onCreate({
             name: leagueName,
             qbCount: rosterSettings.qb,
@@ -91,60 +86,77 @@ export default function AddLeagueOverlay({ isOpen, onClose, onCreate }: Props) {
     return (
         <Overlay isOpen={isOpen} onClose={onClose}>
             <Wrapper>
-                <Title className={headerFont.className}>Add New League</Title>
 
-                <TextInput
-                    label="League Name"
-                    name="leagueName"
-                    placeholder="Enter league name"
-                    value={leagueName}
-                    onChange={(e) => setLeagueName(e.target.value)}
-                    required
-                />
+                <form onSubmit={handleSubmit}>
 
-                <TwoColumn>
-                    <div style={{ width: "100%" }}>
-                        <SectionTitle>Roster Settings</SectionTitle>
-                        {Object.entries(rosterSettings).map(([key, val]) => (
-                            <TextInput
-                                key={key}
-                                type="number"
-                                min={0}
-                                step={1}
-                                label={key.toUpperCase()}
-                                name={key.toUpperCase()}
-                                value={String(val)}
-                                onChange={(e) => setRosterSettings((prev) => ({ ...prev, [key]: parseInt(e.target.value) }))}
-                                placeholder={key.toUpperCase()}
-                                required
-                            />
-                        ))}
-                    </div>
-                    <div style={{ width: "100%" }}>
-                        <SectionTitle>Scoring Settings</SectionTitle>
-                        {Object.entries(scoring).map(([key, val]) => (
-                            <TextInput
-                                key={key}
-                                type="number"
-                                min={0}
-                                step={0.01}
-                                label={key.toUpperCase()}
-                                name={key.toUpperCase()}
-                                value={String(val)}
-                                onChange={(e) => setScoring((prev) => ({ ...prev, [key]: Number(e.target.value) }))}
-                                placeholder={key.toUpperCase()}
-                                required
-                            />
-                        ))}
-                    </div>
-                </TwoColumn>
+                    <Title className={headerFont.className}>Add New League</Title>
 
-                <PrimaryColorButton
-                    style={{ width: "100%", marginTop: "1.5rem" }}
-                    onClick={handleSubmit}
-                >
-                    Create League
-                </PrimaryColorButton>
+                    <TextInput
+                        label="League Name"
+                        name="leagueName"
+                        placeholder="Enter league name"
+                        value={leagueName}
+                        onChange={(e) => setLeagueName(e.target.value)}
+                        required
+                    />
+
+                    <TwoColumn>
+                        <div style={{ width: "100%" }}>
+                            <SectionTitle>Roster Settings</SectionTitle>
+                            {Object.entries(rosterSettings).map(([key, val]) => (
+                                <TextInput
+                                    key={key}
+                                    type="number"
+                                    min={0}
+                                    step={1}
+                                    label={key.toUpperCase()}
+                                    name={key.toUpperCase()}
+                                    value={String(val)}
+                                    onChange={(e) =>
+                                        setRosterSettings((prev) => ({
+                                            ...prev,
+                                            [key]: parseInt(e.target.value),
+                                        }))
+                                    }
+                                    placeholder={key.toUpperCase()}
+                                    required
+                                />
+                            ))}
+                        </div>
+
+                        <div style={{ width: "100%" }}>
+                            <SectionTitle>Scoring Settings</SectionTitle>
+                            {Object.entries(scoring).map(([key, val]) => (
+                                <TextInput
+                                    key={key}
+                                    type="number"
+                                    min={0}
+                                    step={0.01}
+                                    label={key.toUpperCase()}
+                                    name={key.toUpperCase()}
+                                    value={String(val)}
+                                    onChange={(e) =>
+                                        setScoring((prev) => ({
+                                            ...prev,
+                                            [key]: Number(e.target.value),
+                                        }))
+                                    }
+                                    placeholder={key.toUpperCase()}
+                                    required
+                                />
+                            ))}
+                        </div>
+                    </TwoColumn>
+
+                    {/* SUBMIT BUTTON */}
+                    <PrimaryColorButton
+                        type="submit"
+                        style={{ width: "100%", marginTop: "1.5rem" }}
+                    >
+                        Create League
+                    </PrimaryColorButton>
+
+                </form>
             </Wrapper>
         </Overlay>
     );

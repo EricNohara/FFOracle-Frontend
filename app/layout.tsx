@@ -3,6 +3,7 @@ import { baseFont } from "./localFont";
 import { AuthProvider } from "./context/AuthProvider";
 import { UserDataProvider } from "./context/UserDataProvider";
 import "./globals.css";
+import "shepherd.js/dist/css/shepherd.css";
 
 export const metadata: Metadata = {
   title: "FFOracle",

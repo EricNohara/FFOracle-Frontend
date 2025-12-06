@@ -19,6 +19,7 @@ import ConfirmSwapModal from "../components/Overlay/ConfirmSwapModal";
 import { canDefenseStartAtPosition, canPlayerStartAtPosition, getPlayersToSwapForNewStarter } from "@/lib/utils/rosterSlots";
 import SwapSelectionModal from "../components/Overlay/SwapSelectionModal";
 import AddLeagueOverlay from "../components/Overlay/AddLeagueOverlay";
+import DashboardTour from "../components/Tour/DashboardTour";
 
 const NoDataMessage = styled.p`
     font-style: italic;
@@ -95,13 +96,44 @@ export default function DashboardPage() {
         router.push(`/dashboard/advice?leagueId=${league.leagueId}&regenerate=true`);
     };
 
-    const editButton = <PrimaryColorButton onClick={() => router.push(`/stats?leagueId=${selectedLeagueData?.leagueId}`)}>Edit Roster</PrimaryColorButton>;
-    const adviceButton = <PrimaryColorButton onClick={handleClickAdvice}>Generate Advice</PrimaryColorButton>;
-    const addLeagueButton = <PrimaryColorButton onClick={() => setShowAddLeagueModal(true)}>Add League</PrimaryColorButton>
+    const editButton = (
+        <PrimaryColorButton
+            id="edit-button"
+            onClick={() => router.push(`/stats?leagueId=${selectedLeagueData?.leagueId}`)}
+        >
+            Edit Roster
+        </PrimaryColorButton>
+    );
+
+    const adviceButton = (
+        <PrimaryColorButton
+            id="advice-button"
+            onClick={handleClickAdvice}
+        >
+            Generate Advice
+        </PrimaryColorButton>
+    );
+
+    const addLeagueButton = (
+        <PrimaryColorButton
+            id="add-league-button"
+            onClick={() => {
+                const key = `onboarding-stage-${userData?.userInfo.id}`;
+                localStorage.setItem(key, "after-create");
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const t = (window as any)._shepherdTour;
+                if (t) t.cancel(); // Stop the first step
+                setShowAddLeagueModal(true);
+            }}
+        >
+            Add League
+        </PrimaryColorButton >
+    );
 
     // Secondary "button" as dropdown
     const leagueDropdown = (
         <GenericDropdown
+            id="league-dropdown"
             items={userData?.leagues ?? []}
             selected={selectedLeagueData}
             getKey={(l) => l.leagueId}
@@ -272,6 +304,7 @@ export default function DashboardPage() {
             button2={leagueDropdown}
             button3={addLeagueButton}
         >
+            <DashboardTour userId={userData?.userInfo.id} hasLeagues={(userData?.leagues?.length ?? 0) > 0} />
             {selectedLeagueData ?
                 ((selectedLeagueData.players?.length ?? 0) > 0 || (selectedLeagueData.defenses?.length ?? 0) > 0) ?
                     (

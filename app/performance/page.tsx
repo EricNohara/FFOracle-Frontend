@@ -25,18 +25,40 @@ const TablePane = styled.div`
   flex-direction: column;
 `;
 
+type BasicPlayerInfo = {
+    id: string;
+    name: string;
+    position: string;
+    headshot_url: string | null;
+};
+
 export default function PerformancePage() {
     const { userData } = useUserData();
     const [selectedLeagueData, setSelectedLeagueData] = useState<ILeagueData | null>(null);
     const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
     const [performance, setPerformance] = useState<IPerformanceResponse | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [playerInfoMap, setPlayerInfoMap] = useState<Record<string, BasicPlayerInfo>>({});
 
     const players = useMemo(
         () => selectedLeagueData?.players ?? [],
         [selectedLeagueData]
     );
     const hasPlayers = players.length > 0;
+
+    // helper function to get basic player info from their ids used to display their rows
+    async function fetchBasicPlayerInfo(playerIds: string[]) {
+        const res = await authFetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/Players/basic`,
+            {
+                method: "POST",
+                body: JSON.stringify({ ids: playerIds })
+            }
+        );
+
+        if (!res.ok) return [];
+        return await res.json();
+    }
 
     const availableWeeks = useMemo(() => {
         if (!hasPlayers) return [];
@@ -80,6 +102,27 @@ export default function PerformancePage() {
 
                 const data: IPerformanceResponse = await res.json();
                 setPerformance(data);
+
+                // get player names and headshot urls from their ids
+                const playerIds = data.playerPerformance.map(p => p.playerId);
+
+                if (playerIds.length > 0) {
+                    const info = await fetchBasicPlayerInfo(playerIds);
+
+                    const map: Record<string, BasicPlayerInfo> = {};
+                    info.forEach((p: BasicPlayerInfo) => {
+                        map[p.id] = {
+                            id: p.id,
+                            name: p.name,
+                            headshot_url: p.headshot_url ?? null,
+                            position: p.position ?? "UNK"
+                        };
+                    });
+
+
+
+                    setPlayerInfoMap(map);
+                }
             } catch {
                 setPerformance(null);
             } finally {
@@ -98,6 +141,7 @@ export default function PerformancePage() {
         );
     }
 
+    // dropdown selections
     const leagueDropdown = (
         <GenericDropdown
             items={userData?.leagues ?? []}
@@ -118,6 +162,7 @@ export default function PerformancePage() {
         />
     );
 
+    // fallbacks for when there is no performance data available
     if (!hasPlayers) {
         return (
             <AppNavWrapper title="PERFORMANCE" button1={leagueDropdown}>
@@ -138,34 +183,27 @@ export default function PerformancePage() {
         );
     }
 
-    const playerNameMap = Object.fromEntries(players.map((p) => [p.player.id, p.player.name]));
-    const playerPositionMap = Object.fromEntries(players.map((p) => [p.player.id, p.player.position]));
-    const playerHeadshotMap = Object.fromEntries(players.map((p) => [p.player.id, p.player.headshot_url]));
-
     const positionOrder = ["QB", "RB", "WR", "TE", "K"];
 
-    const playerRowsWithNames: (
-        IWeeklyPlayerPerformance & {
-            playerName: string;
-            position: string;
-            headshotUrl: string | null;
-        }
-    )[] =
+    // construct the player rows from their performance stats and their name, position, and headshot urls
+    const playerRowsWithNames =
         (performance?.playerPerformance || [])
-            .map((p) => ({
-                ...p,
-                playerName: playerNameMap[p.playerId] ?? p.playerId,
-                position: playerPositionMap[p.playerId] ?? "UNK",
-                headshotUrl: playerHeadshotMap[p.playerId] ?? null,
-            }))
+            .map((p) => {
+                const info = playerInfoMap[p.playerId];
+
+                return {
+                    ...p,
+                    playerName: info?.name ?? p.playerId,
+                    position: info?.position ?? "UNK", // optional if needed
+                    headshotUrl: info?.headshot_url ?? null,
+                };
+            })
             .sort((a, b) => {
                 const posA = positionOrder.indexOf(a.position);
                 const posB = positionOrder.indexOf(b.position);
-                const orderA = posA === -1 ? 999 : posA;
-                const orderB = posB === -1 ? 999 : posB;
-                if (orderA !== orderB) return orderA - orderB;
-                return a.overallRank - b.overallRank;
+                return (posA - posB || a.overallRank - b.overallRank);
             });
+
 
     return (
         <AppNavWrapper title="PERFORMANCE" button1={leagueDropdown} button2={weekDropdown}>
