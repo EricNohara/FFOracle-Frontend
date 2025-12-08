@@ -1,3 +1,4 @@
+// interfaces for performance responses from backend API
 export interface IPerformanceResponse {
   leaguePerformance: IWeeklyPerformance[];
   playerPerformance: IWeeklyPlayerPerformance[];

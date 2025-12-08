@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceRoleClient, createClient } from "@/lib/supabase/server";
 
+// route to delete a supabase user
 export async function DELETE() {
   try {
     // Create a normal client to get the current session

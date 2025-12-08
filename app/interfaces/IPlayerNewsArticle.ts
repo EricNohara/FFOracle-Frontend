@@ -1,3 +1,4 @@
+// interfaces for responses from article endpoint from our backend
 export interface IPlayerNewsArticle {
   headline: string | null;
   description: string | null;

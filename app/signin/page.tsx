@@ -13,6 +13,7 @@ import TitleLogo from "../components/TitleLogo";
 import { useRedirectIfLoggedIn } from "../hooks/useRedirectIfLoggedIn";
 import { useUserData } from "../context/UserDataProvider";
 
+// Layout container for both panels
 const Container = styled.div`
   display: grid;
   grid-template-columns: 40% 60%;
@@ -21,6 +22,7 @@ const Container = styled.div`
   position: relative;
 `;
 
+// Left side login panel
 const LeftPanel = styled.div`
   position: relative;
   z-index: 2;
@@ -32,14 +34,16 @@ const LeftPanel = styled.div`
   margin-right: -20px;
 `;
 
+// Wrapper for form layout on left panel
 const LeftPanelContent = styled.div`
-    height: 100%;
-    width: 75%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+  height: 100%;
+  width: 75%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `;
 
+// Background panel for the hero image
 const RightPanel = styled.div`
   position: relative;
   z-index: 1;
@@ -77,6 +81,7 @@ const FormSubtitle = styled.h3`
   margin-bottom: 2rem;
 `;
 
+// Main form container
 const LoginForm = styled.form`
   display: flex;
   flex-direction: column;
@@ -84,14 +89,15 @@ const LoginForm = styled.form`
   gap: 0rem;
 `;
 
+// Divider for "Other" section
 const DividerContainer = styled.div`
-margin-top: 1rem;
+  margin-top: 1rem;
   display: flex;
   gap: 2rem;
   width: 100%;
   align-items: center;
 
-  &>p {
+  & > p {
     color: var(--color-txt-3) !important;
     font-size: 0.8rem;
   }
@@ -104,6 +110,7 @@ const Divider = styled.div`
   border-radius: var(--global-border-radius);
 `;
 
+// Footer area under form
 const OtherContent = styled.div`
   display: flex;
   flex-direction: column;
@@ -136,24 +143,29 @@ const FormFooterContainer = styled.div`
   margin-top: 1rem;
   gap: 1rem;
 `;
+
 export default function SignInPage() {
-  // redirect to dashboard if logged in
+  // Redirects user if they’re already authenticated
   useRedirectIfLoggedIn();
-  // create browser client
+
+  // Supabase browser client
   const supabase = createClient();
   const router = useRouter();
   const { setIsLoggedIn } = useAuth();
   const { refreshUserData } = useUserData();
 
+  // Form states
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  // Handles the sign-in process
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
+      // Authenticate with Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -161,9 +173,8 @@ export default function SignInPage() {
 
       if (error) throw new Error(error.message);
 
+      // On success, update auth context and redirect
       if (data.session) {
-        //  redirect user to dashboard page
-        console.log(data.session);
         setIsLoggedIn(true);
         refreshUserData();
         router.push("/dashboard");
@@ -178,14 +189,19 @@ export default function SignInPage() {
 
   return (
     <Container>
-      {/* LEFT PANEL */}
+      {/* LEFT PANEL (FORM SIDE) */}
       <LeftPanel>
         <LeftPanelContent>
+          <FormTitle className={titleFont.className}>
+            Welcome back to your fantasy football assistant
+          </FormTitle>
 
-          <FormTitle className={titleFont.className}>Welcome back to your fantasy football assistant</FormTitle>
-          <FormSubtitle className={headerFont.className}>Sign in now to optimize your roster</FormSubtitle>
+          <FormSubtitle className={headerFont.className}>
+            Sign in now to optimize your roster
+          </FormSubtitle>
 
           <LoginForm onSubmit={handleSignIn}>
+            {/* Email input */}
             <TextInput
               label="Email"
               name="email"
@@ -194,6 +210,8 @@ export default function SignInPage() {
               placeholder="Enter your email"
               required
             />
+
+            {/* Password input */}
             <TextInput
               label="Password"
               name="password"
@@ -203,6 +221,8 @@ export default function SignInPage() {
               type="password"
               required
             />
+
+            {/* Submit button */}
             <PrimaryColorButton
               type="submit"
               disabled={isLoading}
@@ -213,7 +233,7 @@ export default function SignInPage() {
             </PrimaryColorButton>
           </LoginForm>
 
-          {/* FOOTER */}
+          {/* FOOTER SECTION */}
           <FormFooterContainer>
             <DividerContainer>
               <Divider />
@@ -223,16 +243,23 @@ export default function SignInPage() {
 
             <OtherContent>
               <p>Don&apos;t have an account?</p>
-              <PrimaryColorOutlinedButton onClick={() => router.push("/signup")} isFullWidth>
+
+              {/* Navigate to sign-up */}
+              <PrimaryColorOutlinedButton
+                onClick={() => router.push("/signup")}
+                isFullWidth
+              >
                 Sign Up
               </PrimaryColorOutlinedButton>
+
+              {/* Forgot password */}
               <a href="/user/password/forgot">Forgot password?</a>
             </OtherContent>
           </FormFooterContainer>
         </LeftPanelContent>
       </LeftPanel>
 
-      {/* RIGHT PANEL */}
+      {/* RIGHT PANEL (IMAGE + LOGO) */}
       <RightPanel>
         <BackgroundImage
           src="/images/sign-in-sign-up-bg.jpg"

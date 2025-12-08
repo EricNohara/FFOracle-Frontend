@@ -4,6 +4,7 @@ import {
   ILeagueDefense,
 } from "@/app/interfaces/IUserData";
 
+// helper function to format the game matchup information
 export function formatGameInfo(game?: IGameData, player?: IPlayerInfo): string {
   if (!game || !player) return "BYE";
 

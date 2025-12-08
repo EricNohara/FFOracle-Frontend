@@ -11,6 +11,7 @@ import TitleLogo from "../components/TitleLogo";
 import { useRedirectIfLoggedIn } from "../hooks/useRedirectIfLoggedIn";
 import CheckboxInput from "../components/CheckboxInput";
 
+// Main layout with split panel
 const Container = styled.div`
   display: grid;
   grid-template-columns: 40% 60%;
@@ -19,6 +20,7 @@ const Container = styled.div`
   position: relative;
 `;
 
+// Left panel holds the form
 const LeftPanel = styled.div`
   position: relative;
   z-index: 2;
@@ -30,14 +32,16 @@ const LeftPanel = styled.div`
   margin-right: -20px;
 `;
 
+// Left panel content wrapper
 const LeftPanelContent = styled.div`
-    height: 100%;
-    width: 75%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+  height: 100%;
+  width: 75%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `;
 
+// Right panel holds graphic + logo
 const RightPanel = styled.div`
   position: relative;
   z-index: 1;
@@ -62,6 +66,7 @@ const TitleLogoWrapper = styled.div`
   z-index: 3;
 `;
 
+// Section headers
 const FormTitle = styled.h1`
   color: white;
   margin: 0;
@@ -75,6 +80,7 @@ const FormSubtitle = styled.h3`
   margin-bottom: 2rem;
 `;
 
+// Form container
 const LoginForm = styled.form`
   display: flex;
   flex-direction: column;
@@ -82,14 +88,15 @@ const LoginForm = styled.form`
   gap: 0rem;
 `;
 
+// Divider for footer section
 const DividerContainer = styled.div`
-margin-top: 1rem;
+  margin-top: 1rem;
   display: flex;
   gap: 2rem;
   width: 100%;
   align-items: center;
 
-  &>p {
+  & > p {
     color: var(--color-txt-3) !important;
     font-size: 0.8rem;
   }
@@ -102,6 +109,7 @@ const Divider = styled.div`
   border-radius: var(--global-border-radius);
 `;
 
+// Footer with sign-in link and forgot password
 const OtherContent = styled.div`
   display: flex;
   flex-direction: column;
@@ -134,25 +142,29 @@ const FormFooterContainer = styled.div`
   margin-top: 1rem;
   gap: 1rem;
 `;
+
 export default function SignUpPage() {
-  // redirect to dashboard if logged in
+  // Redirect user away from signup if already authenticated
   useRedirectIfLoggedIn();
-  // create browser client
+
   const router = useRouter();
 
+  // Controlled form fields
   const [fullname, setFullname] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [allowEmails, setAllowEmails] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // Simple loading state
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  // Handle submit and send request to backend signup endpoint
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // call our backend to add the user
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/Users/signup`, {
         method: "POST",
         headers: {
@@ -175,10 +187,12 @@ export default function SignUpPage() {
       const data = await res.json();
       alert(data.message);
 
-      //  redirect user to sign in
+      // Navigate to sign-in after successful registration
       router.push("/signin");
     } catch (err) {
       alert(err);
+
+      // Reset fields after error
       setFullname("");
       setPhoneNumber("");
       setAllowEmails(true);
@@ -190,14 +204,19 @@ export default function SignUpPage() {
 
   return (
     <Container>
-      {/* LEFT PANEL */}
+      {/* LEFT PANEL (signup form) */}
       <LeftPanel>
         <LeftPanelContent>
+          <FormTitle className={titleFont.className}>
+            Effortlessly manage your fantasy football team
+          </FormTitle>
 
-          <FormTitle className={titleFont.className}>Effortlessly manage your fantasy football team</FormTitle>
-          <FormSubtitle className={headerFont.className}>Sign up now completely free</FormSubtitle>
+          <FormSubtitle className={headerFont.className}>
+            Sign up now completely free
+          </FormSubtitle>
 
           <LoginForm onSubmit={handleSignUp}>
+            {/* Email */}
             <TextInput
               label="Email"
               name="email"
@@ -207,6 +226,8 @@ export default function SignUpPage() {
               required
               compact
             />
+
+            {/* Password */}
             <TextInput
               label="Password"
               name="password"
@@ -217,6 +238,8 @@ export default function SignUpPage() {
               required
               compact
             />
+
+            {/* Full name (optional) */}
             <TextInput
               label="Full Name"
               name="fullname"
@@ -225,6 +248,8 @@ export default function SignUpPage() {
               placeholder="Enter your full name"
               compact
             />
+
+            {/* Phone number (optional) */}
             <TextInput
               label="Phone Number"
               name="phoneNumber"
@@ -233,11 +258,15 @@ export default function SignUpPage() {
               placeholder="Enter your phone number"
               compact
             />
+
+            {/* Email preference */}
             <CheckboxInput
               checked={allowEmails}
               onChange={setAllowEmails}
               label="Allow FFOracle to send article emails about your players"
             />
+
+            {/* Submit */}
             <PrimaryColorButton
               type="submit"
               disabled={isLoading}
@@ -248,7 +277,7 @@ export default function SignUpPage() {
             </PrimaryColorButton>
           </LoginForm>
 
-          {/* FOOTER */}
+          {/* FOOTER SECTION */}
           <FormFooterContainer>
             <DividerContainer>
               <Divider />
@@ -258,16 +287,18 @@ export default function SignUpPage() {
 
             <OtherContent>
               <p>Already have an account?</p>
+
               <PrimaryColorOutlinedButton onClick={() => router.push("/signin")} isFullWidth>
                 Sign In
               </PrimaryColorOutlinedButton>
+
               <a href="/user/password/forgot">Forgot password?</a>
             </OtherContent>
           </FormFooterContainer>
         </LeftPanelContent>
       </LeftPanel>
 
-      {/* RIGHT PANEL */}
+      {/* RIGHT PANEL (background + logo) */}
       <RightPanel>
         <BackgroundImage
           src="/images/sign-in-sign-up-bg.jpg"

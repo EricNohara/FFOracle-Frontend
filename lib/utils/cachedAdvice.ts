@@ -10,6 +10,7 @@ function normalizeIds(ids: string[]): string[] {
     .sort(); // order-independent
 }
 
+// function to get cached advice from local storage to avoid spending too many tokens
 export function getCachedAdvice(
   userId: string,
   leagueId: string,
@@ -28,8 +29,7 @@ export function getCachedAdvice(
   // Save back only valid entries
   localStorage.setItem(CACHE_KEY, JSON.stringify(validCache));
 
-  // Find match: same user, same league,
-  // AND same normalized unique sorted roster players
+  // Find match: same user, same league, same normalized unique sorted roster players
   const match = validCache.find((c) => {
     if (c.userId !== userId || c.leagueId !== leagueId) return false;
 
@@ -41,15 +41,18 @@ export function getCachedAdvice(
     );
   });
 
+  // return the cached advice only if there is a match
   return match ? match.advice : null;
 }
 
+// function to add a cached advice item into local storage
 export function setCachedAdvice(
   userId: string,
   leagueId: string,
   playerIds: string[],
   advice: IAiAdviceResponse[]
 ) {
+  // get the cache
   const cache: ICachedAdvice[] = JSON.parse(
     localStorage.getItem(CACHE_KEY) || "[]"
   );
@@ -61,6 +64,7 @@ export function setCachedAdvice(
     (c) => !(c.userId === userId && c.leagueId === leagueId)
   );
 
+  // add the new cache entry for the current advice, user id, league id, and list of players
   filtered.push({
     userId,
     leagueId,

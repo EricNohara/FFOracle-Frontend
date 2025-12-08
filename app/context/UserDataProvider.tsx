@@ -14,10 +14,12 @@ const UserDataContext = createContext<IUserDataContext | undefined>(undefined);
 
 const supabase = createClient();
 
+// provider which gives all child components context to a user's data from the backend
 export function UserDataProvider({ children }: { children: ReactNode }) {
     const [userData, setUserData] = useState<IUserData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
+    // function to call our backend to get user data
     const fetchUserData = async () => {
         setIsLoading(true);
 
@@ -32,6 +34,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
         }
 
         try {
+            // make the request with the access token
             const res = await fetch(
                 `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/GetUserData`,
                 {
@@ -47,6 +50,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
 
             const data: IUserData = await res.json();
 
+            // set the user data
             setUserData(data);
         } catch (error) {
             console.error("Error fetching user data:", error);
@@ -56,10 +60,12 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    // call the fetch user data on load
     useEffect(() => {
         fetchUserData();
     }, []);
 
+    // provide child components with the user data and a function to refresh the user data
     return (
         <UserDataContext.Provider
             value={{ userData, isLoading, refreshUserData: fetchUserData }}

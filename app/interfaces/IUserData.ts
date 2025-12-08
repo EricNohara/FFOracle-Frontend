@@ -1,3 +1,4 @@
+// interfaces for userdata gotten from our backend endpoint
 export interface IUserData {
   leagues: ILeagueData[];
   userInfo: IUserInfo;

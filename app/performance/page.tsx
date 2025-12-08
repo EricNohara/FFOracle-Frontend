@@ -11,6 +11,7 @@ import LoadingMessage from "../components/LoadingMessage";
 import styled from "styled-components";
 import { authFetch } from "@/lib/supabase/authFetch";
 
+// Container for stacked tables
 const TablesContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -18,6 +19,7 @@ const TablesContainer = styled.div`
   gap: 2rem;
 `;
 
+// A flexible pane for each table
 const TablePane = styled.div`
   flex: 1;
   min-height: 0;
@@ -34,19 +36,25 @@ type BasicPlayerInfo = {
 
 export default function PerformancePage() {
     const { userData } = useUserData();
+
+    // League, week, and fetched data
     const [selectedLeagueData, setSelectedLeagueData] = useState<ILeagueData | null>(null);
     const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
     const [performance, setPerformance] = useState<IPerformanceResponse | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    // Map from playerId → basic info
     const [playerInfoMap, setPlayerInfoMap] = useState<Record<string, BasicPlayerInfo>>({});
 
+    // Convenience reference to current league players
     const players = useMemo(
         () => selectedLeagueData?.players ?? [],
         [selectedLeagueData]
     );
+
     const hasPlayers = players.length > 0;
 
-    // helper function to get basic player info from their ids used to display their rows
+    // Helper function to fetch minimal player info (name, headshot, position)
     async function fetchBasicPlayerInfo(playerIds: string[]) {
         const res = await authFetch(
             `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/Players/basic`,
@@ -60,24 +68,25 @@ export default function PerformancePage() {
         return await res.json();
     }
 
+    // Compute which weeks have stats available
     const availableWeeks = useMemo(() => {
         if (!hasPlayers) return [];
 
         return Array.from(
             new Set(
-                players.flatMap((p) => p.weeklyStats?.map((ws) => ws.week) ?? [])
+                players.flatMap(p => p.weeklyStats?.map(ws => ws.week) ?? [])
             )
         ).sort((a, b) => a - b);
-
     }, [hasPlayers, players]);
 
-
+    // Default selected league is the user's first league
     useEffect(() => {
         if (userData?.leagues && userData.leagues.length > 0) {
             setSelectedLeagueData(userData.leagues[0]);
         }
     }, [userData]);
 
+    // Default week = latest available
     useEffect(() => {
         if (availableWeeks.length > 0) {
             setSelectedWeek(availableWeeks[availableWeeks.length - 1]);
@@ -86,14 +95,18 @@ export default function PerformancePage() {
         }
     }, [selectedLeagueData, availableWeeks]);
 
+    // Fetch performance data whenever week or league changes
     useEffect(() => {
         if (!selectedLeagueData || selectedWeek === null) return;
 
         const fetcher = async () => {
             setIsLoading(true);
+
             try {
+                // Fetch league's full performance summary for this week
                 const res = await authFetch(
-                    `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/LeaguePerformance/${selectedLeagueData.leagueId}/week/${selectedWeek}`);
+                    `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/LeaguePerformance/${selectedLeagueData.leagueId}/week/${selectedWeek}`
+                );
 
                 if (!res.ok) {
                     setPerformance(null);
@@ -103,9 +116,10 @@ export default function PerformancePage() {
                 const data: IPerformanceResponse = await res.json();
                 setPerformance(data);
 
-                // get player names and headshot urls from their ids
+                // Build list of involved playerIds
                 const playerIds = data.playerPerformance.map(p => p.playerId);
 
+                // Fetch name/headshot/position for rows
                 if (playerIds.length > 0) {
                     const info = await fetchBasicPlayerInfo(playerIds);
 
@@ -119,10 +133,9 @@ export default function PerformancePage() {
                         };
                     });
 
-
-
                     setPlayerInfoMap(map);
                 }
+
             } catch {
                 setPerformance(null);
             } finally {
@@ -133,6 +146,7 @@ export default function PerformancePage() {
         fetcher();
     }, [selectedWeek, selectedLeagueData]);
 
+    // No leagues at all
     if (!userData?.leagues?.length) {
         return (
             <AppNavWrapper title="PERFORMANCE">
@@ -141,7 +155,7 @@ export default function PerformancePage() {
         );
     }
 
-    // dropdown selections
+    // Dropdowns
     const leagueDropdown = (
         <GenericDropdown
             items={userData?.leagues ?? []}
@@ -162,7 +176,7 @@ export default function PerformancePage() {
         />
     );
 
-    // fallbacks for when there is no performance data available
+    // League exists but contains no players
     if (!hasPlayers) {
         return (
             <AppNavWrapper title="PERFORMANCE" button1={leagueDropdown}>
@@ -173,6 +187,7 @@ export default function PerformancePage() {
         );
     }
 
+    // No weekly stats yet
     if (availableWeeks.length === 0) {
         return (
             <AppNavWrapper title="PERFORMANCE" button1={leagueDropdown}>
@@ -183,9 +198,10 @@ export default function PerformancePage() {
         );
     }
 
+    // Sort order for player table rows
     const positionOrder = ["QB", "RB", "WR", "TE", "K"];
 
-    // construct the player rows from their performance stats and their name, position, and headshot urls
+    // Merge performance stats + player info into display rows
     const playerRowsWithNames =
         (performance?.playerPerformance || [])
             .map((p) => {
@@ -194,16 +210,16 @@ export default function PerformancePage() {
                 return {
                     ...p,
                     playerName: info?.name ?? p.playerId,
-                    position: info?.position ?? "UNK", // optional if needed
+                    position: info?.position ?? "UNK",
                     headshotUrl: info?.headshot_url ?? null,
                 };
             })
+            // Sort by position group first, then by overallRank within group
             .sort((a, b) => {
                 const posA = positionOrder.indexOf(a.position);
                 const posB = positionOrder.indexOf(b.position);
                 return (posA - posB || a.overallRank - b.overallRank);
             });
-
 
     return (
         <AppNavWrapper title="PERFORMANCE" button1={leagueDropdown} button2={weekDropdown}>
@@ -211,6 +227,7 @@ export default function PerformancePage() {
                 <LoadingMessage message="Loading performance data..." />
             ) : (
                 <TablesContainer>
+                    {/* Player performance table */}
                     <TablePane>
                         <PerformanceTable<
                             IWeeklyPlayerPerformance & {
@@ -232,6 +249,7 @@ export default function PerformancePage() {
                         />
                     </TablePane>
 
+                    {/* League performance history table */}
                     <TablePane>
                         <PerformanceTable<IWeeklyPerformance>
                             columns={[

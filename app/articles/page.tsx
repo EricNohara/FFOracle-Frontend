@@ -14,6 +14,7 @@ import styled from "styled-components";
 import Overlay from "../components/Overlay/Overlay";
 import { authFetch } from "@/lib/supabase/authFetch";
 
+// Styles for article list and cards
 const ArticlesList = styled.div`
   display: flex;
   flex-direction: column;
@@ -58,8 +59,7 @@ const Headline = styled.h2`
   color: white;
   font-weight: bold;
   margin: 0;
-
-    display: -webkit-box;
+  display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -92,15 +92,15 @@ const Tag = styled.span`
   font-size: 0.8rem;
 `;
 
-// overlay
+// Overlay styles
 const OverlayHeader = styled.div`
-    position: relative;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    padding-bottom: 0;
-    background-color: var(--color-base-dark);
-    border-radius: var(--global-border-radius) var(--global-border-radius) 0 0;
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 0;
+  background-color: var(--color-base-dark);
+  border-radius: var(--global-border-radius) var(--global-border-radius) 0 0;
 `;
 
 const OverlayHeaderImg = styled.img`
@@ -122,8 +122,7 @@ const OverlayStory = styled.div`
   color: var(--color-txt-2);
   font-size: 1rem;
   line-height: 1.75;
-    padding: 2rem;
-  }
+  padding: 2rem;
 `;
 
 const OverlayTag = styled.span`
@@ -142,25 +141,38 @@ const OverlayTag = styled.span`
 export default function ArticlesPage() {
     const router = useRouter();
     const { userData } = useUserData();
+
+    // Active league selection
     const [selectedLeagueData, setSelectedLeagueData] = useState<ILeagueData | null>(null);
+
+    // Articles retrieved for selected league players
     const [articles, setArticles] = useState<IPlayerNewsArticle[]>([]);
+
+    // Loading indicator for fetch
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    // Search query for filtering article list
     const [searchQuery, setSearchQuery] = useState("");
+
+    // Holds article currently shown in overlay
     const [articleToDisplay, setArticleToDisplay] = useState<IPlayerNewsArticle | null>(null);
 
+    // Set default league when user data loads
     useEffect(() => {
         if (userData?.leagues && userData.leagues.length > 0) {
             setSelectedLeagueData(userData.leagues[0]);
         }
     }, [userData]);
 
+    // Fetch new articles whenever league changes
     useEffect(() => {
         if (!selectedLeagueData || !selectedLeagueData?.leagueId) return;
 
         const fetcher = async () => {
             setIsLoading(true);
+
             try {
-                const res = await authFetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/Espn/articles/${selectedLeagueData?.leagueId}`);
+                const res = await authFetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/Espn/articles/${selectedLeagueData.leagueId}`);
 
                 if (!res.ok) {
                     const errorText = await res.text();
@@ -175,13 +187,15 @@ export default function ArticlesPage() {
             } finally {
                 setIsLoading(false);
             }
-        }
+        };
 
         fetcher();
-    }, [selectedLeagueData])
+    }, [selectedLeagueData]);
 
+    // Button for navigation to auto-send settings
     const button = <PrimaryColorButton onClick={() => router.push("/settings")}>Set Up Auto Send</PrimaryColorButton>;
 
+    // Dropdown for choosing which league to load articles for
     const leagueDropdown = (
         <GenericDropdown
             items={userData?.leagues ?? []}
@@ -192,18 +206,22 @@ export default function ArticlesPage() {
         />
     );
 
+    // Article click behavior - open ESPN link if available, otherwise show overlay
     const onArticleClick = (a: IPlayerNewsArticle) => {
         if (a.links.web) {
             window.open(a.links.web.href ?? "", "_blank");
         } else {
             setArticleToDisplay(a);
         }
-    }
+    };
 
+    // Render fallback if league has no players
     if (!selectedLeagueData?.players?.length) {
         return (
             <AppNavWrapper title="ARTICLES" button1={button} button2={leagueDropdown}>
-                <p style={{ color: "var(--color-txt-3)" }}>This league has no players yet. Add players to view articles.</p>
+                <p style={{ color: "var(--color-txt-3)" }}>
+                    This league has no players yet. Add players to view articles.
+                </p>
             </AppNavWrapper>
         );
     }
@@ -211,6 +229,7 @@ export default function ArticlesPage() {
     return (
         <AppNavWrapper title="ARTICLES" button1={button} button2={leagueDropdown}>
             {isLoading ? (
+                // Animated loading message
                 <LoadingMessage
                     messages={[
                         "Fetching from ESPN...",
@@ -221,12 +240,14 @@ export default function ArticlesPage() {
                 />
             ) : (
                 <>
+                    {/* Search input for articles */}
                     <SearchBar
                         value={searchQuery}
                         placeholder="Search articles..."
                         onChange={setSearchQuery}
                         sticky
                     />
+
                     <ArticlesList>
                         {articles
                             .filter(a =>
@@ -234,11 +255,10 @@ export default function ArticlesPage() {
                                 a.description?.toLowerCase().includes(searchQuery.toLowerCase())
                             )
                             .map((a) => {
+                                // Choose image with fallback to player's headshot
                                 const img = a.images?.[0]?.url;
-                                const date = a.published
-                                    ? new Date(a.published).toLocaleDateString()
-                                    : null;
-                                const leaguePlayer = selectedLeagueData?.players.find(
+                                const date = a.published ? new Date(a.published).toLocaleDateString() : null;
+                                const leaguePlayer = selectedLeagueData.players.find(
                                     (p) => p.player.id === a.localPlayerId
                                 );
 
@@ -269,28 +289,30 @@ export default function ArticlesPage() {
                 </>
             )}
 
+            {/* Expanded article overlay */}
             {articleToDisplay && (
                 <Overlay isOpen={!!articleToDisplay} onClose={() => setArticleToDisplay(null)}>
-                    {/* Thumbnail */}
                     <OverlayHeader>
                         <OverlayTag>
                             {articleToDisplay.published
                                 ? new Date(articleToDisplay.published).toLocaleDateString()
                                 : ""}
                         </OverlayTag>
+
                         <OverlayHeaderImg
                             src={
                                 articleToDisplay.images?.[0]?.url ||
-                                selectedLeagueData?.players.find(p => p.player.id === articleToDisplay.localPlayerId)?.player.headshot_url ||
+                                selectedLeagueData.players.find(p => p.player.id === articleToDisplay.localPlayerId)?.player.headshot_url ||
                                 ""
                             }
                             alt={articleToDisplay.headline ?? ""}
                         />
                     </OverlayHeader>
+
                     <OverlayHeadline>{articleToDisplay.headline}</OverlayHeadline>
                     <OverlayStory>{articleToDisplay.story}</OverlayStory>
                 </Overlay>
             )}
         </AppNavWrapper>
-    )
+    );
 }

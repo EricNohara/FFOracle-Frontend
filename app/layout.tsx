@@ -18,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={baseFont.className} suppressHydrationWarning>
       <body>
+        {/* add the 2 context providers for auth and user data */}
         <AuthProvider>
           <UserDataProvider>
             {children}

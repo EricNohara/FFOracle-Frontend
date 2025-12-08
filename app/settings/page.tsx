@@ -21,9 +21,10 @@ import GenericDropdown from "../components/GenericDropdown";
 import styled from "styled-components";
 import { authFetch } from "@/lib/supabase/authFetch";
 
+// Main layout container
 const PageContainer = styled.div`
-padding-left: 1.5rem;
-padding-right: 1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
   color: white;
   height: 100%;
   display: flex;
@@ -31,6 +32,7 @@ padding-right: 1.5rem;
   overflow-y: auto;
 `;
 
+// Card for each settings section
 const ContentCard = styled.div`
   background: var(--color-base-dark-2);
   padding: 2rem;
@@ -45,31 +47,32 @@ export default function SettingsPage() {
     const { setIsLoggedIn } = useAuth();
     const { userData, isLoading, refreshUserData } = useUserData();
 
-    const [activeTab, setActiveTab] = useState<
-        "general" | "roster" | "scoring"
-    >("general");
+    // Active tab selection
+    const [activeTab, setActiveTab] = useState<"general" | "roster" | "scoring">("general");
 
+    // Editable settings state
     const [userInfo, setUserInfo] = useState<IUserInfo | null>(null);
-    const [rosterSettings, setRosterSettings] =
-        useState<IRosterSettings | null>(null);
-    const [scoringSettings, setScoringSettings] =
-        useState<IScoringSettings | null>(null);
+    const [rosterSettings, setRosterSettings] = useState<IRosterSettings | null>(null);
+    const [scoringSettings, setScoringSettings] = useState<IScoringSettings | null>(null);
 
-    const [selectedLeagueData, setSelectedLeagueData] =
-        useState<ILeagueData | null>(null);
+    // Current league selection
+    const [selectedLeagueData, setSelectedLeagueData] = useState<ILeagueData | null>(null);
 
+    // Populate settings once user data is loaded
     useEffect(() => {
         if (!isLoading && userData?.userInfo) {
             setUserInfo(userData.userInfo);
 
             if (userData.leagues && userData.leagues.length > 0) {
-                setSelectedLeagueData(userData.leagues[0]);
-                setRosterSettings(userData.leagues[0].rosterSettings);
-                setScoringSettings(userData.leagues[0].scoringSettings);
+                const league = userData.leagues[0];
+                setSelectedLeagueData(league);
+                setRosterSettings(league.rosterSettings);
+                setScoringSettings(league.scoringSettings);
             }
         }
     }, [userData, isLoading]);
 
+    // Save all settings changes to backend
     const handleSaveChanges = async () => {
         try {
             const { data: { session } } = await supabase.auth.getSession();
@@ -78,14 +81,14 @@ export default function SettingsPage() {
                 return;
             }
 
-            // Save user info
+            // Save User Info
             if (userInfo) {
                 const payload = {
                     fullname: userInfo.fullname,
                     phoneNumber: userInfo.phone_number,
                     allowEmails: userInfo.allow_emails,
-                    tokensLeft: userInfo.tokens_left
-                }
+                    tokensLeft: userInfo.tokens_left,
+                };
 
                 const userRes = await fetch(
                     `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/Users`,
@@ -98,15 +101,17 @@ export default function SettingsPage() {
                         body: JSON.stringify(payload),
                     }
                 );
+
                 if (!userRes.ok) throw new Error("Failed to update user info");
             }
 
-            // Save roster settings
+            // Save League Roster Settings
             if (rosterSettings) {
                 const payload = {
                     league_id: selectedLeagueData?.leagueId,
-                    ...rosterSettings
-                }
+                    ...rosterSettings,
+                };
+
                 const rosterRes = await fetch(
                     `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/rosterSettings`,
                     {
@@ -118,16 +123,18 @@ export default function SettingsPage() {
                         body: JSON.stringify(payload),
                     }
                 );
+
                 if (!rosterRes.ok)
                     throw new Error("Failed to update roster settings");
             }
 
-            // Save scoring settings
+            // Save League Scoring Settings
             if (scoringSettings) {
                 const payload = {
                     league_id: selectedLeagueData?.leagueId,
-                    ...scoringSettings
-                }
+                    ...scoringSettings,
+                };
+
                 const scoringRes = await fetch(
                     `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague/scoringSettings`,
                     {
@@ -139,6 +146,7 @@ export default function SettingsPage() {
                         body: JSON.stringify(payload),
                     }
                 );
+
                 if (!scoringRes.ok)
                     throw new Error("Failed to update scoring settings");
             }
@@ -150,17 +158,19 @@ export default function SettingsPage() {
         }
     };
 
+    // Delete user account
     const handleDeleteUser = async () => {
         if (!confirm("Are you sure? This cannot be undone.")) return;
 
         try {
             const res = await authFetch(
                 `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/Users`,
-                { method: "DELETE", }
+                { method: "DELETE" }
             );
 
             if (!res.ok) throw new Error(await res.text());
 
+            // Cleanup local session
             await fetch("/api/deleteUser", { method: "DELETE" });
 
             alert("Account deleted successfully");
@@ -173,16 +183,18 @@ export default function SettingsPage() {
         }
     };
 
+    // Delete selected league
     const handleDeleteLeague = async () => {
         if (!confirm("Are you sure? This cannot be undone.")) return;
 
         try {
             const res = await authFetch(
                 `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/UpdateUserLeague?leagueId=${selectedLeagueData?.leagueId}`,
-                { method: "DELETE", }
+                { method: "DELETE" }
             );
 
             if (!res.ok) throw new Error();
+
             alert("League deleted successfully");
             refreshUserData();
         } catch (error) {
@@ -190,7 +202,7 @@ export default function SettingsPage() {
         }
     };
 
-
+    // Action buttons
     const saveButton = (
         <PrimaryColorButton onClick={handleSaveChanges}>
             Save Changes
@@ -209,6 +221,7 @@ export default function SettingsPage() {
         </SecondaryColorButton>
     );
 
+    // Dropdown for selecting leagues when editing roster or scoring tabs
     const leagueDropdown = (
         <GenericDropdown
             items={userData?.leagues ?? []}
@@ -216,6 +229,7 @@ export default function SettingsPage() {
             getKey={(l) => l.leagueId}
             getLabel={(l) => l.leagueName}
             onChange={(l) => {
+                // Update tab settings when switching leagues
                 setSelectedLeagueData(l);
                 setRosterSettings(l.rosterSettings);
                 setScoringSettings(l.scoringSettings);
@@ -223,6 +237,7 @@ export default function SettingsPage() {
         />
     );
 
+    // Loading fallback
     if (isLoading) {
         return (
             <AppNavWrapper
@@ -239,13 +254,17 @@ export default function SettingsPage() {
         <AppNavWrapper
             title="SETTINGS"
             button1={saveButton}
+            // Show delete user for general tab, delete league for roster/scoring tabs
             button2={activeTab === "general" ? deleteUserButton : deleteLeagueButton}
             button3={activeTab !== "general" ? leagueDropdown : null}
         >
             <PageContainer>
+                {/* Tab selector */}
                 <SettingsTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
+                {/* Tab content */}
                 <ContentCard>
+                    {/* User info tab */}
                     {activeTab === "general" && userInfo && (
                         <GeneralTab
                             email={userInfo.email}
@@ -266,6 +285,7 @@ export default function SettingsPage() {
                         />
                     )}
 
+                    {/* Roster settings tab */}
                     {activeTab === "roster" && rosterSettings && (
                         <RosterTab
                             rosterSettings={rosterSettings}
@@ -275,6 +295,7 @@ export default function SettingsPage() {
                         />
                     )}
 
+                    {/* Scoring settings tab */}
                     {activeTab === "scoring" && scoringSettings && (
                         <ScoringTab
                             scoringSettings={scoringSettings}

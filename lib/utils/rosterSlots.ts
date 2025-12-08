@@ -2,6 +2,7 @@ import { ILeagueData, IPlayerData } from "@/app/interfaces/IUserData";
 
 export const FLEX_ELIGIBLE = ["RB", "WR", "TE"];
 
+// helper function that gets the number of roster slots per position
 export function getRosterSlotsByPosition(
   league: ILeagueData | null,
   position: string
@@ -30,6 +31,7 @@ export function getRosterSlotsByPosition(
   }
 }
 
+// helper function which returns boolean whether there is space remaining to add a NEW player at a given position
 export function isSpaceRemainingForPlayerAtPosition(
   league: ILeagueData | null,
   position: string
@@ -82,7 +84,7 @@ export function isSpaceRemainingForPlayerAtPosition(
 
   const benchRemaining = Math.max(benchSlots - usedBenchSlots, 0);
 
-  // ---- DECISION ----
+  // Decision
   if (perPositionUsed[position] < posSlots) return true; // position slot available
   if (isFlexEligible && usedFlexSlots < flexSlots) return true; // flex slot available
   if (benchRemaining > 0) return true; // bench slot available
@@ -90,6 +92,7 @@ export function isSpaceRemainingForPlayerAtPosition(
   return false; // no space
 }
 
+// function to see if you are allowed to start a player at a given position given the other starting players and the roster settings
 export function canPlayerStartAtPosition(
   league: ILeagueData,
   position: string
@@ -135,6 +138,7 @@ export function canPlayerStartAtPosition(
   return flexSlots - flexTotal > 0;
 }
 
+// same as players but only needs to check for defense
 export function canDefenseStartAtPosition(league: ILeagueData) {
   if (!league || !league.rosterSettings) return false;
 

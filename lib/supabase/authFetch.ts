@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 
+// helper function to perform an authenticated fetch that attaches the bearer auth supabase access token
 export async function authFetch(url: string, options: RequestInit = {}) {
   const supabase = createClient();
 
@@ -9,13 +10,15 @@ export async function authFetch(url: string, options: RequestInit = {}) {
 
   if (!token) throw new Error("User not authenticated");
 
-  console.log("SENDING:", {
-    url,
-    method: options.method,
-    headers: options.headers,
-    body: options.body,
-  });
+  // log for testing
+  // console.log("SENDING:", {
+  //   url,
+  //   method: options.method,
+  //   headers: options.headers,
+  //   body: options.body,
+  // });
 
+  // perform the fetch with the authorization token
   return fetch(url, {
     ...options,
     headers: {
