@@ -140,9 +140,7 @@ export default function PlayerComparisonResultOverlay({
                 ? targetPlayer.player.position
                 : null;
 
-    // -------------------------
     // Fetch AI data when overlay opens
-    // -------------------------
     useEffect(() => {
         if (!isOpen || !targetId || !compareId || !position) return;
 
@@ -152,8 +150,7 @@ export default function PlayerComparisonResultOverlay({
                 setError(null);
 
                 const res = await authFetch(
-                    `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/PlayerComparison/${targetId}/${compareId}/${position}?leagueId=${leagueId}`,
-                    { credentials: "include" }
+                    `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/PlayerComparison/${targetId}/${compareId}/${position}?leagueId=${leagueId}`
                 );
 
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
