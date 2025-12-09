@@ -75,8 +75,6 @@ From the project root (`FFOracle-Frontend`):
 npm install
 ```
 
-You can also use `yarn`/`pnpm`/`bun` if you prefer, but the scripts below assume `npm`.
-
 You'll need the appropriate environment variables configured for Supabase and Stripe in `.env.local`:
 
 ```
@@ -89,7 +87,7 @@ NEXT_PUBLIC_BACKEND_BASE_URL=
 ```
 
 
-Consult your backend / env docs for the exact variable names.
+Contact us for the relevant API keys.
 
 ---
 
