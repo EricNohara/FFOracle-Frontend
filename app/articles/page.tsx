@@ -123,6 +123,8 @@ const OverlayStory = styled.div`
   font-size: 1rem;
   line-height: 1.75;
   padding: 2rem;
+  flex: 1;
+  overflow-y: auto;
 `;
 
 const OverlayTag = styled.span`
