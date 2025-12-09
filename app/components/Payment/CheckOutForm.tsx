@@ -155,7 +155,6 @@ export default function CheckoutForm({ packageData, onBack }: CheckoutFormProps)
     try {
       const res = await authFetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/Stripe/create-payment-intent`, {
         method: 'POST',
-        credentials: 'include',
         body: JSON.stringify({
           packageId: packageData.id,
           amount: Math.round(packageData.price * 100),
