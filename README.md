@@ -1,6 +1,10 @@
 ## FFOracle Frontend
 
-Fantasy Football Assistant Manager – frontend web app built with the Next.js App Router.
+Frontend Repository for our Fantasy Football Assistant Manager FFOracle. 
+
+- **Backend Repository:** https://github.com/EricNohara/FFOracle-Backend/
+- **Updater Repository** https://github.com/EricNohara/FFOracle-Updater/
+- **Production:** Deployed on Vercel
 
 
 ---
